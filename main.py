@@ -2,7 +2,6 @@ import pygame
 import sys
 import settings
 from vizualizator import Vizualizator
-from random import randint
 
 
 class AppMain:
@@ -24,7 +23,7 @@ class AppMain:
                 if event.key == pygame.K_SPACE:
                     pass
                     #self.new_game()
-            self.vizualizator.sidebar.handle_events(event)
+            self.vizualizator.handleEvents(event)
 
 
     def run(self):

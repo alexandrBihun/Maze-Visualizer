@@ -1,8 +1,6 @@
-
 class Sidebar():
-    def __init__(self, val):
+    def __init__(self):
         pass
-    value = 40
 
     def handle_events(self,event):
         pass
