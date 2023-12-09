@@ -3,6 +3,7 @@ class Tile():
         self.x = x
         self.y = y
         self.isWall = False
+        self.value = 0
 
     def __str__(self):
         return f"x:{self.x},y:{self.y},iW:{self.isWall}\n"

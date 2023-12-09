@@ -22,6 +22,23 @@ class Vizualizator():
 
     def handleEvents(self,event):
         self.sidebar.handle_events(event)
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if self.tool == "selectStart":
+                if pygame.mouse.get_pressed()[0]:
+                    x,y, self.toRedraw = Tools.drawWall(pygame.mouse.get_pos(),self.grid,self.drawedCells, start = True, currStartOrEndPos= self.start) 
+                    self.start = (x,y)
+            elif self.tool == "selectFinish":
+                if pygame.mouse.get_pressed()[0]:
+                    x,y, self.toRedraw = Tools.drawWall(pygame.mouse.get_pos(),self.grid,self.drawedCells, finish = True, currStartOrEndPos= self.finish)
+                    self.finish = (x,y)
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_s:
+                self.tool = "selectStart"
+            if event.key == pygame.K_f:
+                self.tool = "selectFinish"
+            if event.key == pygame.K_d:
+                self.tool = "wallBrush"
 
     def drawGrid(self):
         self.main.screen.fill(self.bgColor)
@@ -30,14 +47,18 @@ class Vizualizator():
             pygame.draw.line(self.main.screen, (182,187,196), (0, i),(settings.widthGrid ,i))
             pygame.draw.line(self.main.screen, (182,187,196), (i, 0), (i, settings.heightGrid))
 
-    def drawWall(self, x,y):
-        pygame.draw.rect(self.main.screen,"black",rect=(self.result[x],self.result[y], self.result[x+1] - self.result[x] , self.result[y+1] - self.result[y]))
+    def drawWall(self, x,y, colour):
+        pygame.draw.rect(self.main.screen,colour,rect=(self.result[x],self.result[y], self.result[x+1] - self.result[x] , self.result[y+1] - self.result[y]))
 
     def drawObjects(self):
         for column in self.grid:
             for cell in column:
                 if cell.isWall == True:
-                    self.drawWall(cell.x,cell.y)
+                    self.drawWall(cell.x,cell.y,"black")
+                elif cell.value == 1:
+                    self.drawWall(cell.x,cell.y, "green")
+                elif cell.value == 2:
+                    self.drawWall(cell.x,cell.y, "blue")
 
     def draw(self):
         self.drawGrid()
@@ -50,7 +71,7 @@ class Vizualizator():
                 self.toRedraw = Tools.drawWall(pygame.mouse.get_pos(),self.grid,self.drawedCells) ##edits grid object and unnecessarily invokes redrawing of entire grid for every painted cell 
             else:
                 self.drawedCells = []
-
+        
     def run(self):
         if self.toRedraw:
             print("drawing")
@@ -69,3 +90,8 @@ class Vizualizator():
                 t = Tile(i,j)
                 column_list.append(t)
             self.grid.append(column_list)
+        
+        self.grid[0][0].value = 1
+        self.grid[settings.sideLenght-1][settings.sideLenght-1].value = 2
+        self.start = (0,0)
+        self.finish = (settings.sideLenght-1, settings.sideLenght-1)
