@@ -1,4 +1,4 @@
-sideLenght = 10#number of squares in side -- 100 seems to be max value for a nice looking maze
+sideLenght = 50#number of squares in side -- 100 seems to be max value for a nice looking maze
 
 width_menu = 300
 widthGrid, heightGrid = 990,990

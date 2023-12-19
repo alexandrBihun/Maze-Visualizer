@@ -11,8 +11,8 @@ class AppMain:
         self.clock = pygame.time.Clock()
         self.vizualizator = Vizualizator(self)
 
-    """def new_game(self):
-        self.tic_tac_toe = Vizualizator(self)"""
+    def reset(self):
+        self.vizualizator = Vizualizator(self)
 
     def check_for_events(self):
         for event in pygame.event.get():
@@ -20,9 +20,8 @@ class AppMain:
                 pygame.quit()
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    pass
-                    #self.new_game()
+                if event.key == pygame.K_r:
+                    self.reset()
             self.vizualizator.handleEvents(event)
 
 
@@ -30,7 +29,7 @@ class AppMain:
         while True:
             self.vizualizator.run()
             self.check_for_events()
-            pygame.display.flip()
+            #pygame.display.flip() redundant
             self.clock.tick(60)
 
 
