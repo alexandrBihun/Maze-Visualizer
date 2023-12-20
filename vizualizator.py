@@ -4,6 +4,19 @@ import pygame
 import settings
 from tools import Tools
 import random
+from collections import deque
+
+def invert_dict(original_dict):
+    inverted_dict = {}
+    
+    for key, value in original_dict.items():
+        if value not in inverted_dict:
+            inverted_dict[value] = [key]
+        else:
+            inverted_dict[value].append(key)
+    
+    return inverted_dict
+
 class Vizualizator():
     def __init__(self, main) -> None:
         self.main = main
@@ -74,7 +87,6 @@ class Vizualizator():
             """
 
             randomTile = frontiers.pop(random.randint(0,len(frontiers)-1))
-            print(randomTile)
             randomTile.colour = self.bgColor
             randomTile.isWall = False
 
@@ -151,7 +163,6 @@ class Vizualizator():
         elif event.type == pygame.MOUSEMOTION:
             if self.tool == "wallBrush" and pygame.mouse.get_pressed()[0]:
                 result = Tools.drawWall(pygame.mouse.get_pos(),self.grid,self.drawedCells)
-                print(result)
                 if len(result)>2 and result[2]:
                     self.toRedraw = result[2]
                     if len(self.drawedCells)>0:
@@ -198,7 +209,6 @@ class Vizualizator():
             if not curr.isStart and not curr.isFinish:
                 curr.colour = "yellow"
                 self.drawTileOntoSurface(curr.x,curr.y)
-                print(curr.x,curr.y)
                 pygame.display.flip()
                 pygame.time.delay(self.visualDelay)
 
@@ -229,7 +239,6 @@ class Vizualizator():
         stack = [self.grid[self.start[0]][self.start[1]]]
         visited = set()
         parentDict = dict()
-        count = 0
         clock = pygame.time.Clock() #TODO check if there is a better way for animation delaying ;; clock drastically lowers cpu usage, other possibility: pygame.time.delay()
         last = pygame.time.get_ticks()
 
@@ -244,7 +253,6 @@ class Vizualizator():
             now = pygame.time.get_ticks()
             if now - last >= self.visualDelay:
                 last = now
-                count += 1
                 
                 current = stack.pop()
                 i, j = current.x,current.y
@@ -278,6 +286,70 @@ class Vizualizator():
         self.visited = visited
         return None
     
+    
+    def BFS(self):
+        visited = set()
+        queue = deque()
+        queue.appendleft(self.grid[self.start[0]][self.start[1]])
+        parentDict = dict()
+        parentDict[self.grid[self.start[0]][self.start[1]]] = None
+
+        distanceDict = dict()
+        distanceDict[self.grid[self.start[0]][self.start[1]]] = 0
+
+        while queue:
+            current = queue.pop()
+            
+            if current == self.grid[self.finish[0]][self.finish[1]]:
+                visited.clear()
+                i = 0
+                invDict = invert_dict(distanceDict)
+                while i in invDict.keys():
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            pygame.quit()
+                    for c in invDict[i]:
+                        if not c.isStart  and not c.isFinish:
+                            visited.add(c)
+                            c.colour = "red"
+                            self.drawTileOntoSurface(c.x,c.y)
+                    pygame.display.flip()
+                    pygame.time.delay(self.visualDelay)
+                    i+=1
+
+                self.visited = visited
+
+                return parentDict
+
+            visited.add(current)
+
+            for neighbor in self.get_neighbours(current):
+                if neighbor not in visited and neighbor not in queue:
+                    queue.appendleft(neighbor)
+                    parentDict[neighbor] = current
+                    distanceDict[neighbor] = distanceDict[current] + 1
+
+        visited.clear()
+        i = 0
+        invDict = invert_dict(distanceDict)
+        while i in invDict.keys():
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+            for c in invDict[i]:
+                if not c.isStart  and not c.isFinish:
+                    visited.add(c)
+                    c.colour = "red"
+                    self.drawTileOntoSurface(c.x,c.y)
+            pygame.display.flip()
+            pygame.time.delay(self.visualDelay)
+            i+=1
+
+        self.visited = visited
+        
+        return None
+                        
+
     def runVisualization(self):
         """Starts visualisation accordigly to selected alg"""
         if self.selectedAlgo == "BFS":
