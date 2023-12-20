@@ -3,7 +3,7 @@ from tile import Tile
 import pygame
 import settings
 from tools import Tools
-
+import random
 class Vizualizator():
     def __init__(self, main) -> None:
         self.main = main
@@ -22,7 +22,91 @@ class Vizualizator():
         self.drawedCells = []
         self.selectedAlgo = "DFS"
         self.visited = set()
-        self.visualDelay = 1
+        self.visualDelay = 5
+
+    def generateMaze(self):
+        self.start = None
+        self.Finish = None
+        def get_frontiers(tile):
+            frontiers = []
+
+            if tile.x>1:
+                if self.grid[tile.x-2][tile.y].isWall == True:
+                    frontiers.append(self.grid[tile.x-2][tile.y])
+
+            if tile.x<settings.sideLenght-2:
+                if self.grid[tile.x+2][tile.y].isWall == True:
+                    frontiers.append(self.grid[tile.x+2][tile.y])
+                    
+            if tile.y>1:
+                if self.grid[tile.x][tile.y-2].isWall == True:
+                    frontiers.append(self.grid[tile.x][tile.y-2])
+
+            if tile.y<settings.sideLenght-2:
+                if self.grid[tile.x][tile.y+2].isWall == True:
+                    frontiers.append(self.grid[tile.x][tile.y+2])
+
+            return frontiers
+        
+
+        for column in self.grid:
+            for tile in column:
+                tile.isWall = True
+                tile.isStart = False
+                tile.isFinish = False
+                tile.colour = "black"
+        x,y = random.randint(0,settings.sideLenght-1),random.randint(0,settings.sideLenght-1)
+        self.grid[x][y].isWall = False
+        self.grid[x][y].colour = self.bgColor
+
+        frontierDict = dict()
+        print("first:",self.grid[x][y],"\n")
+        frontiers = get_frontiers(self.grid[x][y])
+        for f in frontiers:
+            frontierDict[f] = self.grid[x][y]
+        
+        while len(frontiers):
+            
+            """for column in self.grid:
+                for tile in column:
+                    self.drawTileOntoSurface(tile.x,tile.y)
+            pygame.display.flip()
+            """
+
+            randomTile = frontiers.pop(random.randint(0,len(frontiers)-1))
+            print(randomTile)
+            randomTile.colour = self.bgColor
+            randomTile.isWall = False
+
+            fatherOfRandomTile = frontierDict[randomTile]
+
+            middleTile = self.grid[(randomTile.x+fatherOfRandomTile.x)//2][(randomTile.y+fatherOfRandomTile.y)//2] ## middle of two points formula
+            middleTile.isWall = False
+            middleTile.colour = self.bgColor
+            
+            newFrontiers = get_frontiers(randomTile)
+            for f in newFrontiers:
+                frontierDict[f] = randomTile
+            frontiers.extend(newFrontiers)
+
+        lastTile = None
+        for column in self.grid:
+            for tile in column:
+                if not tile.isWall:
+                    if self.start == None:
+                        tile.isStart = True
+                        tile.colour = "green"
+                        self.start = (tile.x,tile.y) 
+                    lastTile = tile
+                self.drawTileOntoSurface(tile.x,tile.y)
+
+        self.finish = lastTile.x,lastTile.y
+        lastTile.colour = "blue"
+        lastTile.isFinish = True
+        self.drawTileOntoSurface(lastTile.x,lastTile.y)
+                
+
+
 
     def drawTileOntoSurface(self, x,y):  #mozna misto x,y jen tile
         self.grid[x][y].drawSelf(self.main.screen)
@@ -97,11 +181,14 @@ class Vizualizator():
                     self.visualizePath(path)
             if event.key == pygame.K_c:
                 self.redrawVisited()
+            if event.key == pygame.K_g:
+                self.generateMaze()
+                self.draw()
             if event.key == pygame.K_UP:
                 self.visualDelay += 5
                 print(self.visualDelay)
             if event.key == pygame.K_DOWN:
-                self.visualDelay = max(0,self.visualDelay-1)
+                self.visualDelay = max(0,self.visualDelay-5)
                 print(self.visualDelay)
     
     def visualizePath(self, path: dict): 
@@ -204,8 +291,8 @@ class Vizualizator():
         surf.fill(self.bgColor)
 
         for i in self.gridLinesDistribution:
-            pygame.draw.line(surf, (182,187,196), (0, i),(settings.widthGrid ,i))
-            pygame.draw.line(surf, (182,187,196), (i, 0), (i, settings.heightGrid))
+            pygame.draw.line(surf, (74,56,14), (0, i),(settings.widthGrid ,i))
+            pygame.draw.line(surf, (74,56,14), (i, 0), (i, settings.heightGrid))
     
     def draw(self): 
         pygame.display.flip()
