@@ -20,7 +20,6 @@ def binSearch(sorted_list, target):
     # At this point, low > high, and the target lies between high and low
     return high, low
 
-freeTileColour = "light gray"
 class Tools:
     
     gridLines = [round(0 + i * (settings.widthGrid - 0) / (settings.sideLenght)) for i in range(settings.sideLenght+1)] ## gets positions of grid lines
@@ -39,18 +38,18 @@ class Tools:
                 if len(drawedCells) == 0:
                     grid[x][y].isWall = not grid[x][y].isWall
                     if grid[x][y].isWall == True:
-                        grid[x][y].colour = "black"
+                        grid[x][y].colour = settings.wall_colour
                     else:
-                        grid[x][y].colour = freeTileColour
+                        grid[x][y].colour = settings.empty_colour
                     drawedCells.append(grid[x][y])
                     return x,y,True
                 elif drawedCells[0].isWall != grid[x][y].isWall: ##assures only one operation is performed at a time - either erasing or drawing
                     if grid[x][y] not in drawedCells:
                         grid[x][y].isWall = not grid[x][y].isWall
                         if grid[x][y].isWall == True:
-                            grid[x][y].colour = "black"
+                            grid[x][y].colour = settings.wall_colour
                         else:
-                            grid[x][y].colour = freeTileColour
+                            grid[x][y].colour = settings.empty_colour
                         return x,y,True
                 else: ##needed for the MOUSEMOTION event handle to work properly
                     return [False]
@@ -67,17 +66,17 @@ class Tools:
             if start:
                 print(grid[x][y].isFinish)
                 grid[x][y].isWall = False
-                grid[x][y].colour = "green"
+                grid[x][y].colour = settings.start_colour
                 grid[x][y].isStart = True
-                grid[currStartPos[0]][currStartPos[1]].colour = freeTileColour
+                grid[currStartPos[0]][currStartPos[1]].colour = settings.empty_colour
                 grid[currStartPos[0]][currStartPos[1]].isStart= False
                 return x,y,True
 
             elif finish:
                 grid[x][y].isWall = False
-                grid[x][y].colour = "blue"
+                grid[x][y].colour = settings.finish_colour
                 grid[x][y].isFinish= True
-                grid[currStartPos[0]][currStartPos[1]].colour = freeTileColour
+                grid[currStartPos[0]][currStartPos[1]].colour = settings.empty_colour
                 grid[currStartPos[0]][currStartPos[1]].isFinish = False
                 return x,y, True
         else:

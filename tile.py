@@ -6,7 +6,7 @@ class Tile():
     def __init__(self, x, y,colour) -> None:
         self.x = x
         self.y = y
-        self.isWall = False  ##TODO bitfield instead of 3 three bools
+        self.isWall = False
         self.isStart = False
         self.isFinish = False
         self.colour = colour
