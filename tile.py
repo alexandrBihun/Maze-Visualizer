@@ -16,5 +16,7 @@ class Tile():
     def drawSelf(self,surf):
         pygame.draw.rect(surf,self.colour,rect=(self.gridLinesDistribution[self.x]+offset,self.gridLinesDistribution[self.y]+offset, self.gridLinesDistribution[self.x+1] - self.gridLinesDistribution[self.x] - offset , self.gridLinesDistribution[self.y+1] - self.gridLinesDistribution[self.y] -offset))
 
+    def get_pos(self):
+        return (self.x ,self.y)
     def __str__(self):
         return f"x:{self.x},y:{self.y},iW:{self.isWall}, colour: {self.colour} \n"

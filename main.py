@@ -7,6 +7,7 @@ from vizualizator import Vizualizator
 class AppMain:
     def __init__(self) -> None:
         pygame.init()
+        pygame.display.set_caption("Path Finding Visualizator")
         self.screen = pygame.display.set_mode(settings.screen_size)
         self.clock = pygame.time.Clock()
         self.vizualizator = Vizualizator(self)
