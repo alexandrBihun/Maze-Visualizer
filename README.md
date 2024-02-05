@@ -21,5 +21,7 @@ Ovládá se klávesnicí:
 - 'r' restartuje celou aplikaci
 - '↑' zpomalí vizualizaci
 - '↓' zrychlí vizualizaci 
-Některé funkce se dají ovládat i pomocí UI tlačítek. 
+
+Některé funkce se dají ovládat i pomocí UI tlačítek.
+
 V souboru settings.py lze upravovat pokročilé možnosti, zejména počet vykreslovaných políček.
