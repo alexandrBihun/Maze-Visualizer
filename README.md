@@ -10,11 +10,16 @@ Spusťte: `python3 main.py` v adresáři s projektem
 
 
 ### Ovládání:
-Mimo tlačítek UI (zatím ne) se dá ovládat i klávesnicí:
-- Tlačítky 1, 2, 3 se mění vybraný algoritmus (DFS, BFS, A*)
+Ovládá se klávesnicí:
+- Tlačítky 1, 2, 3, 4 se mění vybraný algoritmus (DFS, BFS, Greedy Best First Search, A*)
 - Mezerník spustí vizualizaci
 - 'g' vygeneruje bludiště
 - 's' vybere nástroj pro vybírání startu
 - 'f' vybere nástroj pro vybírání cíle
-- 'd' vybere nástroj pro kreslení a "gumování" stěn
+- 'd' vybere nástroj pro kreslení a gumování stěn
 - 'c' smaže políčka vybarvená dokončenou vizualizací
+- 'r' restartuje celou aplikaci
+- '↑' zpomalí vizualizaci
+- '↓' zrychlí vizualizaci 
+Některé funkce se dají ovládat i pomocí UI tlačítek. 
+V souboru settings.py lze upravovat pokročilé možnosti, zejména počet vykreslovaných políček.
