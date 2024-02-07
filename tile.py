@@ -2,7 +2,8 @@
 import pygame
 import settings
 
-offset = 1  # For 0, the maze has no edges; for 1, normal edges; for i > 1, 'tile effect'.
+
+gridLinesDistribution = [round(0 + i * (settings.widthGrid - 0) / (settings.sideLength)) for i in range(settings.sideLength + 1)]
 
 # Define the Tile class for representing individual tiles in the maze
 class Tile():
@@ -16,14 +17,13 @@ class Tile():
         self.colour = colour
 
         # Determine the distribution of grid lines in the maze
-        self.gridLinesDistribution = [round(0 + i * (settings.widthGrid - 0) / (settings.sideLength)) for i in range(settings.sideLength + 1)]
 
     # Method to draw the tile onto the screen
     def drawSelf(self, surf):
         pygame.draw.rect(surf, self.colour,
-                         rect=(self.gridLinesDistribution[self.x] + offset, self.gridLinesDistribution[self.y] + offset,
-                               self.gridLinesDistribution[self.x + 1] - self.gridLinesDistribution[self.x] - offset,
-                               self.gridLinesDistribution[self.y + 1] - self.gridLinesDistribution[self.y] - offset))
+                         rect=(gridLinesDistribution[self.x] + settings.offset, gridLinesDistribution[self.y] + settings.offset,
+                               gridLinesDistribution[self.x + 1] - gridLinesDistribution[self.x] - settings.offset,
+                               gridLinesDistribution[self.y + 1] - gridLinesDistribution[self.y] - settings.offset))
 
     # Method to get the position of the tile
     def get_pos(self):

@@ -579,6 +579,7 @@ class Vizualizator:
             self.draw()
             self.toRedraw = False
 
+    @timer_func
     def initGrid(self):
         """
         initiliziases grid: grid is a list of column_lists, indexed into as [x][y], x grows from left to right, y top to bot
