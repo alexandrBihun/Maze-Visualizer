@@ -1,4 +1,4 @@
-sideLength = 50#Number of tiles in the 'edge' — 100 is probably the maximum for a nice maze, 500 takes a moment to load, and 800 freezes the PC.
+sideLength = 50#Number of tiles in the side — 300 is probably the maximum for a nice maze, anything above 500 takes a moment to load and risks freezeing the PC.
 
 #Settings for window size; the sidebar has hardcoded positions of UI elements => they may not render correctly when these settings change.
 width_menu = 300
@@ -13,5 +13,6 @@ in_frontier_colour = "olivedrab3"
 wall_colour = (0,0,0)
 empty_colour = "snow2"
 background_colour = "light gray"
+grid_lines = (74, 56, 14)
 
 screen_size = widthGrid+width_menu,heightGrid

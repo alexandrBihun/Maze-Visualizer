@@ -355,29 +355,28 @@ class Vizualizator:
         parentDict = dict()
         parentDict[self.startTile] = None
         i = 0
+        visited.add(self.startTile)
         while stack:
             self.Alg_check_events()
 
             current = stack.pop()
-            if current != self.startTile and current != self.finishTile:
-                current.colour = settings.visited_colour
-                self.drawTileOntoSurface(current)
 
             if current == self.finishTile:
                 return parentDict, True
 
-            if current not in visited:
-                visited.add(current)
+            if current != self.startTile:
+                current.colour = settings.visited_colour
+                self.drawTileOntoSurface(current)
 
-                #Add neighbors to the stack
-                for neighbor in self.get_neighbours(current):
-                    if neighbor not in visited and neighbor not in stack:
-                        if neighbor != self.startTile and neighbor != self.finishTile:
-                            neighbor.colour = settings.in_frontier_colour
-                            self.drawTileOntoSurface(neighbor)
-                        stack.append(neighbor)
-                        parentDict[neighbor] = current
-            
+            #Add neighbors to the stack
+            for neighbor in self.get_neighbours(current):
+                if neighbor not in visited:# and neighbor not in stack:
+                    if neighbor != self.startTile and neighbor != self.finishTile:
+                        neighbor.colour = settings.in_frontier_colour
+                        self.drawTileOntoSurface(neighbor)
+                    stack.append(neighbor)
+                    parentDict[neighbor] = current
+                    visited.add(neighbor)
             #Visualize based on visualization speed
             if self.numberOfTilesPerFrame > 1:
                 if i % self.numberOfTilesPerFrame == 0:
@@ -441,7 +440,7 @@ class Vizualizator:
         visited = set()
         priority_queue = PriorityQueue()
         priority_queue.put(
-            PrioritizedItem(priority=0, item=self.startTile)) #Priority queue with (heuristic, node) tuple
+            PrioritizedItem(priority=0, item=self.startTile)) #Priority queue item with (heuristic, node) tuple
 
         parentDict = dict()
         parentDict[self.startTile] = None
@@ -520,8 +519,8 @@ class Vizualizator:
 
             #Add neighbors to priority queue
             for neighbor in self.get_neighbours(current):
-                g_cost = g_cost_dict[current] + 1
-                h_cost = self.manhattan_dist(neighbor, self.finishTile)
+                g_cost = g_cost_dict[current] + 1 # Setting g_cost to be always 0 turns A* into Greedy best first search
+                h_cost = self.manhattan_dist(neighbor, self.finishTile) # Setting h_cost to be always 0 turns A* into Uniform Cost Search
                 f_cost = g_cost + h_cost
 
                 if neighbor not in visited:
@@ -568,8 +567,8 @@ class Vizualizator:
         surf.fill(self.bgColor)
 
         for i in self.gridLinesDistribution:
-            pygame.draw.line(surf, (74, 56, 14), (0, i), (settings.widthGrid, i))
-            pygame.draw.line(surf, (74, 56, 14), (i, 0), (i, settings.heightGrid))
+            pygame.draw.line(surf, settings.grid_lines, (0, i), (settings.widthGrid, i))
+            pygame.draw.line(surf, settings.grid_lines, (i, 0), (i, settings.heightGrid))
 
     def draw(self):
         pygame.display.flip()
@@ -577,7 +576,6 @@ class Vizualizator:
     def run(self):
         """Main loop, doesnt do that much"""
         if self.toRedraw:
-            print("drawing")
             self.draw()
             self.toRedraw = False
 
