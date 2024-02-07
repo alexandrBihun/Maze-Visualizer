@@ -142,7 +142,7 @@ class Vizualizator:
         self.drawTileOntoSurface(lastTile)
 
     def drawTileOntoSurface(self, tile):
-        """Draw a tile onto the screen surface."""
+        """Draw a tile onto the screen surface. tile is Tile object"""
         tile.drawSelf(self.main.screen)
 
     def redrawVisited(self):
@@ -171,12 +171,11 @@ class Vizualizator:
             # Handle different tools (selectStart, selectFinish, wallBrush)
             if self.tool == "selectStart":
                 if pygame.mouse.get_pressed()[0]:
-                    x, y, self.toRedraw = Tools.drawWall(
+                    x, y, self.toRedraw = Tools.drawEndPoints(
                         pygame.mouse.get_pos(),
                         self.grid,
-                        self.drawedCells,
-                        start=True,
-                        currStartOrEndPos=self.startTile.get_pos(),
+                        self.startTile.get_pos(),
+                        start=True
                     )
                     if self.toRedraw:
                         self.drawTileOntoSurface(self.startTile)
@@ -185,12 +184,11 @@ class Vizualizator:
 
             elif self.tool == "selectFinish":
                 if pygame.mouse.get_pressed()[0]:
-                    x, y, self.toRedraw = Tools.drawWall(
+                    x, y, self.toRedraw = Tools.drawEndPoints(
                         pygame.mouse.get_pos(),
                         self.grid,
-                        self.drawedCells,
-                        finish=True,
-                        currStartOrEndPos=self.finishTile.get_pos(),
+                        self.finishTile.get_pos(),
+                        finish=True
                     )
                     if self.toRedraw:
                         self.drawTileOntoSurface(self.finishTile)
@@ -201,21 +199,20 @@ class Vizualizator:
                 result = Tools.drawWall(
                     pygame.mouse.get_pos(), self.grid, self.drawedCells
                 )
-                if len(result) > 2 and result[2]:
-                    self.toRedraw = result[2]
-                    if len(self.drawedCells) > 0:
-                        self.drawTileOntoSurface(self.grid[result[0]][result[1]])
+                if result != None:
+                    self.drawTileOntoSurface(result)
+                self.toRedraw = True
 
         elif event.type == pygame.MOUSEMOTION:
+            #print(event)
             # Handle wallBrush tool during mouse motion
             if self.tool == "wallBrush" and pygame.mouse.get_pressed()[0]:
-                result = Tools.drawWall(
-                    pygame.mouse.get_pos(), self.grid, self.drawedCells
+                result = Tools.drawWallCurve(
+                    event.pos, self.grid, self.drawedCells, event.rel
                 )
-                if len(result) > 2 and result[2]:
-                    self.toRedraw = result[2]
-                    if len(self.drawedCells) > 0:
-                        self.drawTileOntoSurface(self.grid[result[0]][result[1]])
+                self.toRedraw = True
+                for c in result:
+                    self.drawTileOntoSurface(c)
             else:
                 self.drawedCells = []
 
@@ -246,20 +243,7 @@ class Vizualizator:
             if event.key == pygame.K_g:
                 self.generateMaze()
                 self.draw()
-            if event.key == pygame.K_UP:
-                # Adjust visualization delay and tiles per frame
-                if self.numberOfTilesPerFrame == 1:
-                    self.visualDelay += 5
-                else:
-                    self.numberOfTilesPerFrame -= 1
-                print("delay:", self.visualDelay, "tilesPerFrame:", self.numberOfTilesPerFrame)
-            if event.key == pygame.K_DOWN:
-                # Adjust visualization delay and tiles per frame
-                if self.visualDelay == 0:
-                    self.numberOfTilesPerFrame += 1
-                else:
-                    self.visualDelay = max(0, self.visualDelay - 5)
-                print("delay:", self.visualDelay, "tilesPerFrame:", self.numberOfTilesPerFrame)
+            self.changeVisualizationSpeed(event)
 
     def visualizePath(self, path: dict, found):
         """Visualizes path, path is a parentDict"""
@@ -313,6 +297,31 @@ class Vizualizator:
 
         return neighbours
 
+    def changeVisualizationSpeed(self,event):
+        if event.key == pygame.K_UP:
+            if self.numberOfTilesPerFrame == 1:
+                self.visualDelay += 5
+            else:
+                self.numberOfTilesPerFrame -= int(max(1, self.numberOfTilesPerFrame / 10))
+            print(
+                "delay:",
+                self.visualDelay,
+                "tilesPerFrame:",
+                self.numberOfTilesPerFrame,
+            )
+        if event.key == pygame.K_DOWN:
+            if self.visualDelay == 0:
+                self.numberOfTilesPerFrame += int(max(1, self.numberOfTilesPerFrame / 10))
+            else:
+                self.visualDelay = max(0, self.visualDelay - 5)
+            print(
+                "delay:",
+                self.visualDelay,
+                "tilesPerFrame:",
+                self.numberOfTilesPerFrame,
+            )
+
+
     def Alg_check_events(self):
         """Event handler for any visualization function"""
         for event in pygame.event.get():
@@ -320,28 +329,8 @@ class Vizualizator:
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:
-                    if self.numberOfTilesPerFrame == 1:
-                        self.visualDelay += 5
-                    else:
-                        self.numberOfTilesPerFrame -= 1
-                    print(
-                        "delay:",
-                        self.visualDelay,
-                        "tilesPerFrame:",
-                        self.numberOfTilesPerFrame,
-                    )
-                if event.key == pygame.K_DOWN:
-                    if self.visualDelay == 0:
-                        self.numberOfTilesPerFrame += 1
-                    else:
-                        self.visualDelay = max(0, self.visualDelay - 5)
-                    print(
-                        "delay:",
-                        self.visualDelay,
-                        "tilesPerFrame:",
-                        self.numberOfTilesPerFrame,
-                    )
+                self.changeVisualizationSpeed(event)
+                
 
     def manhattan_dist(self, node, goal):
         """Manhattan distance heuristic."""
