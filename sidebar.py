@@ -27,7 +27,11 @@ class Sidebar():
         button_surface = pygame.image.load("run_button.png")
         button_surface = pygame.transform.scale(button_surface, (3 * 70, 3 * 30))
         self.run_button = Button(button_surface, settings.widthGrid + 45, 800)
-        self.buttons.extend((self.switch_alg_button, self.run_button))
+
+        button_surface = pygame.image.load("toggle_grid_button.png")
+        button_surface = pygame.transform.scale(button_surface, (3 * 70, 3 * 30))
+        self.grid_lines_button = Button(button_surface, settings.widthGrid + 45, 700)
+        self.buttons.extend((self.switch_alg_button, self.run_button,self.grid_lines_button))
 
         # Draw the initial state of the sidebar
         self.redraw_sidebar()
@@ -74,6 +78,12 @@ class Sidebar():
             if self.run_button.checkForInput(pos):
                 # Trigger the main's space_pressed method
                 self.main.space_pressed()
+            if self.grid_lines_button.checkForInput(pos):
+                # Toggle grid lines
+                settings.offset = not settings.offset
+                self.main.drawGrid()
+                self.main.redrawVisited(True)
+                self.redraw_sidebar()
 
 # Define the Text class for displaying text on the screen
 class Text():

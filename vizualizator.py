@@ -40,7 +40,7 @@ class Vizualizator:
         ]
 
         # Draw the initial grid and set up initial state
-        self.drawGrid(self.main.screen)
+        self.drawGrid()
         self.initGrid()
         self.redrawVisited()
         
@@ -145,14 +145,20 @@ class Vizualizator:
         """Draw a tile onto the screen surface. tile is Tile object"""
         tile.drawSelf(self.main.screen)
 
-    def redrawVisited(self):
-        """Redraw all tiles visited during visualisation."""
-        for column in self.grid:
-            for tile in column:
-                if not tile.isStart and not tile.isFinish and not tile.isWall:
-                    tile.colour = settings.empty_colour
+    def redrawVisited(self, redrawAll = False):
+        """Redraw all tiles visited during visualisation. If redrawAll is True, redraws all"""
+        if redrawAll:
+            for column in self.grid:
+                for tile in column:
                     self.drawTileOntoSurface(tile)
-        pygame.display.flip()
+            pygame.display.flip()
+        else:
+            for column in self.grid:
+                for tile in column:
+                    if not tile.isStart and not tile.isFinish and not tile.isWall:
+                        tile.colour = settings.empty_colour
+                        self.drawTileOntoSurface(tile)
+            pygame.display.flip()
 
     def space_pressed(self):
         """Handle for space key press to visualize the selected algorithm."""
@@ -538,8 +544,9 @@ class Vizualizator:
         elif self.selectedAlgo == "Greedy Best First Search":
             return self.greedy_BeFS()
 
-    def drawGrid(self, surf):
+    def drawGrid(self):
         """Draws grid, precisely grid lines."""
+        surf = self.main.screen
         surf.fill(settings.background_colour)
 
         for i in self.gridLinesDistribution:
