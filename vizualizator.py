@@ -40,6 +40,7 @@ class Vizualizator:
         ]
 
         # Draw the initial grid and set up initial state
+        self.main.screen.fill(settings.background_colour)
         self.drawGrid()
         self.initGrid()
         self.redrawVisited()
@@ -547,7 +548,6 @@ class Vizualizator:
     def drawGrid(self):
         """Draws grid, precisely grid lines."""
         surf = self.main.screen
-        surf.fill(settings.background_colour)
 
         for i in self.gridLinesDistribution:
             pygame.draw.line(surf, settings.grid_lines, (0, i), (settings.widthGrid, i))
