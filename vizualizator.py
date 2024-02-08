@@ -26,6 +26,7 @@ def timer_func(func):
     return wrapper
 # Main class for visualization
 class Vizualizator:
+    @timer_func
     def __init__(self, main) -> None:
         # Initialization method for the Vizualizator class.
         # Takes a 'main' parameter, which is expected to be an instance of the main application.
@@ -33,7 +34,6 @@ class Vizualizator:
         self.grid: list[list[Tile]] = []  # 2D list to represent the grid of tiles
         self.font = pygame.font.SysFont("Verdana", 18, True)
 
-        self.bgColor = settings.background_colour
         self.gridLinesDistribution = [
             round(0 + i * (settings.widthGrid - 0) / (settings.sideLength))
             for i in range(settings.sideLength + 1)
@@ -298,10 +298,12 @@ class Vizualizator:
         return neighbours
 
     def changeVisualizationSpeed(self,event):
+        """Dynamically changes visualization speed on keyboard input"""
         if event.key == pygame.K_UP:
             if self.numberOfTilesPerFrame == 1:
                 self.visualDelay += 5
             else:
+                #The slower the visualitaion is, the lower the speed decrease
                 self.numberOfTilesPerFrame -= int(max(1, self.numberOfTilesPerFrame / 10))
             print(
                 "delay:",
@@ -311,6 +313,7 @@ class Vizualizator:
             )
         if event.key == pygame.K_DOWN:
             if self.visualDelay == 0:
+                #The faster the visualitaion is, the bigger the speed increase
                 self.numberOfTilesPerFrame += int(max(1, self.numberOfTilesPerFrame / 10))
             else:
                 self.visualDelay = max(0, self.visualDelay - 5)
@@ -320,7 +323,6 @@ class Vizualizator:
                 "tilesPerFrame:",
                 self.numberOfTilesPerFrame,
             )
-
 
     def Alg_check_events(self):
         """Event handler for any visualization function"""
@@ -335,6 +337,15 @@ class Vizualizator:
     def manhattan_dist(self, node, goal):
         """Manhattan distance heuristic."""
         return abs(node.x - goal.x) + abs(node.y - goal.y)
+    
+    def algo_visualize(self,i):
+        if self.numberOfTilesPerFrame > 1:
+            if i % self.numberOfTilesPerFrame == 0:
+                pygame.display.flip()
+        else:
+            pygame.display.flip()
+            pygame.time.delay(self.visualDelay)
+        return i + 1
 
     @timer_func
     def DFS(self):
@@ -367,13 +378,7 @@ class Vizualizator:
                     parentDict[neighbor] = current
                     visited.add(neighbor)
             #Visualize based on visualization speed
-            if self.numberOfTilesPerFrame > 1:
-                if i % self.numberOfTilesPerFrame == 0:
-                    pygame.display.flip()
-            else:
-                pygame.display.flip()
-                pygame.time.delay(self.visualDelay)
-            i += 1
+            i = self.algo_visualize(i)
 
         return parentDict, False
 
@@ -410,13 +415,7 @@ class Vizualizator:
                     visited.add(neighbor)
 
             #Visualize based on visualization speed
-            if self.numberOfTilesPerFrame > 1:
-                if i % self.numberOfTilesPerFrame == 0:
-                    pygame.display.flip()
-            else:
-                pygame.display.flip()
-                pygame.time.delay(self.visualDelay)
-            i += 1
+            i = self.algo_visualize(i)
         return parentDict, False
 
     @timer_func
@@ -460,13 +459,7 @@ class Vizualizator:
                     parentDict[neighbor] = current
 
             #Visualize based on visualization speed
-            if self.numberOfTilesPerFrame > 1:
-                if i % self.numberOfTilesPerFrame == 0:
-                    pygame.display.flip()
-            else:
-                pygame.display.flip()
-                pygame.time.delay(self.visualDelay)
-            i += 1
+            i = self.algo_visualize(i)
 
         return parentDict, False
 
@@ -530,13 +523,7 @@ class Vizualizator:
             
             if redrawedCurr:
                 #Visualize based on visualization speed
-                if self.numberOfTilesPerFrame > 1:
-                    if i % self.numberOfTilesPerFrame == 0:
-                        pygame.display.flip()
-                else:
-                    pygame.display.flip()
-                    pygame.time.delay(self.visualDelay)
-                i += 1
+                i = self.algo_visualize(i)
                 redrawedCurr = False
         return parentDict, False
 
@@ -553,7 +540,7 @@ class Vizualizator:
 
     def drawGrid(self, surf):
         """Draws grid, precisely grid lines."""
-        surf.fill(self.bgColor)
+        surf.fill(settings.background_colour)
 
         for i in self.gridLinesDistribution:
             pygame.draw.line(surf, settings.grid_lines, (0, i), (settings.widthGrid, i))
@@ -568,7 +555,6 @@ class Vizualizator:
             self.draw()
             self.toRedraw = False
 
-    @timer_func
     def initGrid(self):
         """
         initiliziases grid: grid is a list of column_lists, indexed into as [x][y], x grows from left to right, y top to bot
