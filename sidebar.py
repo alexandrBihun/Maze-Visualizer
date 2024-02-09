@@ -26,11 +26,11 @@ class Sidebar():
         
         button_surface = pygame.image.load("run_button.png")
         button_surface = pygame.transform.scale(button_surface, (3 * 70, 3 * 30))
-        self.run_button = Button(button_surface, settings.widthGrid + 45, 800)
+        self.run_button = Button(button_surface, settings.widthGrid + 45, settings.heightGrid - 200)
 
         button_surface = pygame.image.load("toggle_grid_button.png")
         button_surface = pygame.transform.scale(button_surface, (3 * 70, 3 * 30))
-        self.grid_lines_button = Button(button_surface, settings.widthGrid + 45, 700)
+        self.grid_lines_button = Button(button_surface, settings.widthGrid + 45, settings.heightGrid - 230 - self.run_button.rect.height)
         self.buttons.extend((self.switch_alg_button, self.run_button,self.grid_lines_button))
 
         # Draw the initial state of the sidebar

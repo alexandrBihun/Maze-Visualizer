@@ -105,7 +105,7 @@ class Vizualizator:
             #Uncomment for maze-gen visualization:
             #for column in self.grid:
             #    for tile in column:
-            #        self.drawTileOntoSurface(tile)
+            #        tile.drawSelf(self.main.screen)
             #pygame.display.flip()
 
             randomTile = frontiers.pop(random.randint(0, len(frontiers) - 1))
@@ -135,30 +135,26 @@ class Vizualizator:
                         startFound = True
                         self.startTile = tile
                     lastTile = tile
-                self.drawTileOntoSurface(tile)
+                tile.drawSelf(self.main.screen)
 
         self.finishTile = lastTile
         lastTile.colour = settings.finish_colour
         lastTile.isFinish = True
-        self.drawTileOntoSurface(lastTile)
-
-    def drawTileOntoSurface(self, tile):
-        """Draw a tile onto the screen surface. tile is Tile object"""
-        tile.drawSelf(self.main.screen)
+        lastTile.drawSelf(self.main.screen)
 
     def redrawVisited(self, redrawAll = False):
         """Redraw all tiles visited during visualisation. If redrawAll is True, redraws all"""
         if redrawAll:
             for column in self.grid:
                 for tile in column:
-                    self.drawTileOntoSurface(tile)
+                    tile.drawSelf(self.main.screen)
             pygame.display.flip()
         else:
             for column in self.grid:
                 for tile in column:
                     if not tile.isStart and not tile.isFinish and not tile.isWall:
                         tile.colour = settings.empty_colour
-                        self.drawTileOntoSurface(tile)
+                        tile.drawSelf(self.main.screen)
             pygame.display.flip()
 
     def space_pressed(self):
@@ -185,9 +181,9 @@ class Vizualizator:
                         start=True
                     )
                     if self.toRedraw:
-                        self.drawTileOntoSurface(self.startTile)
+                        self.startTile.drawSelf(self.main.screen)
                         self.startTile = self.grid[x][y]
-                        self.drawTileOntoSurface(self.startTile)
+                        self.startTile.drawSelf(self.main.screen)
 
             elif self.tool == "selectFinish":
                 if pygame.mouse.get_pressed()[0]:
@@ -198,16 +194,16 @@ class Vizualizator:
                         finish=True
                     )
                     if self.toRedraw:
-                        self.drawTileOntoSurface(self.finishTile)
+                        self.finishTile.drawSelf(self.main.screen)
                         self.finishTile = self.grid[x][y]
-                        self.drawTileOntoSurface(self.finishTile)
+                        self.finishTile.drawSelf(self.main.screen)
 
             elif self.tool == "wallBrush":
                 result = Tools.drawWall(
                     pygame.mouse.get_pos(), self.grid, self.drawedCells
                 )
                 if result != None:
-                    self.drawTileOntoSurface(result)
+                    result.drawSelf(self.main.screen)
                 self.toRedraw = True
 
         elif event.type == pygame.MOUSEMOTION:
@@ -219,7 +215,7 @@ class Vizualizator:
                 )
                 self.toRedraw = True
                 for c in result:
-                    self.drawTileOntoSurface(c)
+                    c.drawSelf(self.main.screen)
             else:
                 self.drawedCells = []
 
@@ -249,7 +245,7 @@ class Vizualizator:
                 self.redrawVisited()
             if event.key == pygame.K_g:
                 self.generateMaze()
-                self.draw()
+                pygame.display.flip()
             self.changeVisualizationSpeed(event)
 
     def visualizePath(self, path: dict, found):
@@ -262,7 +258,7 @@ class Vizualizator:
                 if not curr.isStart and not curr.isFinish:
                     self.Alg_check_events()
                     curr.colour = settings.path_colour
-                    self.drawTileOntoSurface(curr)
+                    curr.drawSelf(self.main.screen)
                     if i % self.numberOfTilesPerFrame == 0:
                         pygame.display.flip()
                         pygame.time.delay(self.visualDelay)
@@ -283,23 +279,21 @@ class Vizualizator:
         """Node is tile object, returns node pointers"""
         neighbours = []
 
-        if (node.x + node.y) % 2 == 0 or True:
-            if node.y < settings.sideLength - 1:
-                if self.grid[node.x][node.y + 1].isWall == False:
-                    neighbours.append(self.grid[node.x][node.y + 1])
-            if node.y > 0:
-                if self.grid[node.x][node.y - 1].isWall == False:
-                    neighbours.append(self.grid[node.x][node.y - 1])
-            if node.x < settings.sideLength - 1:
-                if self.grid[node.x + 1][node.y].isWall == False:
-                    neighbours.append(self.grid[node.x + 1][node.y])
-            if node.x > 0:
-                if self.grid[node.x - 1][node.y].isWall == False:
-                    neighbours.append(self.grid[node.x - 1][node.y])
+        if node.y < settings.sideLength - 1:
+            if self.grid[node.x][node.y + 1].isWall == False:
+                neighbours.append(self.grid[node.x][node.y + 1])
+        if node.y > 0:
+            if self.grid[node.x][node.y - 1].isWall == False:
+                neighbours.append(self.grid[node.x][node.y - 1])
+        if node.x < settings.sideLength - 1:
+            if self.grid[node.x + 1][node.y].isWall == False:
+                neighbours.append(self.grid[node.x + 1][node.y])
+        if node.x > 0:
+            if self.grid[node.x - 1][node.y].isWall == False:
+                neighbours.append(self.grid[node.x - 1][node.y])
 
-        if (
-            node.x + node.y
-        ) % 2 != 0:  # Makes paths "prettier"; source: https://www.redblobgames.com/pathfinding/a-star/implementation.html#troubleshooting-ugly-path
+        if (node.x + node.y) % 2 != 0:  
+            # Makes paths "prettier"; source: https://www.redblobgames.com/pathfinding/a-star/implementation.html#troubleshooting-ugly-path
             neighbours.reverse()
 
         return neighbours
@@ -340,7 +334,6 @@ class Vizualizator:
             if event.type == pygame.KEYDOWN:
                 self.changeVisualizationSpeed(event)
                 
-
     def manhattan_dist(self, node, goal):
         """Manhattan distance heuristic."""
         return abs(node.x - goal.x) + abs(node.y - goal.y)
@@ -373,14 +366,14 @@ class Vizualizator:
 
             if current != self.startTile:
                 current.colour = settings.visited_colour
-                self.drawTileOntoSurface(current)
+                current.drawSelf(self.main.screen)
 
             #Add neighbors to the stack
             for neighbor in self.get_neighbours(current):
                 if neighbor not in visited:# and neighbor not in stack:
                     if neighbor != self.startTile and neighbor != self.finishTile:
                         neighbor.colour = settings.in_frontier_colour
-                        self.drawTileOntoSurface(neighbor)
+                        neighbor.drawSelf(self.main.screen)
                     stack.append(neighbor)
                     parentDict[neighbor] = current
                     visited.add(neighbor)
@@ -408,14 +401,14 @@ class Vizualizator:
 
             if current != self.startTile:
                 current.colour = settings.visited_colour
-                self.drawTileOntoSurface(current)
+                current.drawSelf(self.main.screen)
 
             #Enqueue neighbors
             for neighbor in self.get_neighbours(current):
                 if neighbor not in visited:
                     if neighbor != self.startTile and neighbor != self.finishTile:
                         neighbor.colour = settings.in_frontier_colour
-                        self.drawTileOntoSurface(neighbor)
+                        neighbor.drawSelf(self.main.screen)
 
                     queue.appendleft(neighbor)
                     parentDict[neighbor] = current
@@ -450,14 +443,14 @@ class Vizualizator:
 
             if current != self.startTile:
                 current.colour = settings.visited_colour
-                self.drawTileOntoSurface(current)
+                current.drawSelf(self.main.screen)
 
             #Add neighbors to priority queue
             for neighbor in self.get_neighbours(current):
                 if neighbor not in visited:
                     if neighbor != self.startTile and neighbor != self.finishTile:
                         neighbor.colour = settings.in_frontier_colour
-                        self.drawTileOntoSurface(neighbor)
+                        neighbor.drawSelf(self.main.screen)
                     priority = self.manhattan_dist(neighbor, self.finishTile)
                     priority_queue.put(
                         PrioritizedItem(priority=priority, item=neighbor)
@@ -488,50 +481,48 @@ class Vizualizator:
         parentDict = dict()
         parentDict[self.startTile] = None
         visited.add(self.startTile)
-
+        closed = set()
         g_cost_dict = dict()
         g_cost_dict[self.startTile] = 0
-        redrawedCurr = False
         i = 0
         while not priority_queue.empty():
             self.Alg_check_events()
             current = priority_queue.get().item
+            if current not in closed: #A-star sometimes visits a tile more than once, this makes sure revisited tile is not redrawn
+                
+                if current == self.finishTile:
+                    return parentDict, True
 
-            if current == self.finishTile:
-                return parentDict, True
+                if current != self.startTile:
+                    current.colour = settings.visited_colour
+                    current.drawSelf(self.main.screen)
 
-            #A-star sometimes visits a tile more than once, this makes sure revisited tile is not redrawn
-            if current != self.startTile and current.colour != settings.visited_colour:
-                redrawedCurr = True
-                current.colour = settings.visited_colour
-                self.drawTileOntoSurface(current)
+                #Add neighbors to priority queue
+                for neighbor in self.get_neighbours(current):
+                    g_cost = g_cost_dict[current] + 1 # Setting g_cost to be always 0 turns A* into Greedy best first search
+                    h_cost = self.manhattan_dist(neighbor, self.finishTile) # Setting h_cost to be always 0 turns A* into Uniform Cost Search
+                    f_cost = g_cost + h_cost
 
-            #Add neighbors to priority queue
-            for neighbor in self.get_neighbours(current):
-                g_cost = g_cost_dict[current] + 1 # Setting g_cost to be always 0 turns A* into Greedy best first search
-                h_cost = self.manhattan_dist(neighbor, self.finishTile) # Setting h_cost to be always 0 turns A* into Uniform Cost Search
-                f_cost = g_cost + h_cost
+                    if neighbor not in visited:
+                        if neighbor != self.startTile and neighbor != self.finishTile:
+                            neighbor.colour = settings.in_frontier_colour
+                            neighbor.drawSelf(self.main.screen)
+                        priority_queue.put(PrioritizedItem(priority=f_cost, h_score=h_cost, item=neighbor))
+                        g_cost_dict[neighbor] = g_cost
+                        parentDict[neighbor] = current
+                        visited.add(neighbor)
 
-                if neighbor not in visited:
-                    if neighbor != self.startTile and neighbor != self.finishTile:
-                        neighbor.colour = settings.in_frontier_colour
-                        self.drawTileOntoSurface(neighbor)
-                    priority_queue.put(PrioritizedItem(priority=f_cost, h_score=h_cost, item=neighbor))
-                    g_cost_dict[neighbor] = g_cost
-                    parentDict[neighbor] = current
-                    visited.add(neighbor)
-
-                elif g_cost < g_cost_dict[neighbor]:
-                    # This path is better than old one (better g cost), update the priority queue
-                    priority_queue.put(PrioritizedItem(priority=f_cost, h_score=h_cost, item=neighbor))
-                    g_cost_dict[neighbor] = g_cost
-                    parentDict[neighbor] = current
-                    visited.add(neighbor)
-            
-            if redrawedCurr:
+                    elif g_cost < g_cost_dict[neighbor]:
+                        # This path is better than old one (better g cost), update the priority queue
+                        priority_queue.put(PrioritizedItem(priority=f_cost, h_score=h_cost, item=neighbor))
+                        g_cost_dict[neighbor] = g_cost
+                        parentDict[neighbor] = current
+                        visited.add(neighbor)
+                
+                
                 #Visualize based on visualization speed
                 i = self.algo_visualize(i)
-                redrawedCurr = False
+                closed.add(current)
         return parentDict, False
 
     def runVisualization(self):
@@ -553,13 +544,10 @@ class Vizualizator:
             pygame.draw.line(surf, settings.grid_lines, (0, i), (settings.widthGrid, i))
             pygame.draw.line(surf, settings.grid_lines, (i, 0), (i, settings.heightGrid))
 
-    def draw(self):
-        pygame.display.flip()
-
     def run(self):
         """Main loop, doesnt do that much"""
         if self.toRedraw:
-            self.draw()
+            pygame.display.flip()
             self.toRedraw = False
 
     def initGrid(self):
@@ -580,5 +568,5 @@ class Vizualizator:
         self.startTile = self.grid[0][0]
         self.finishTile = self.grid[settings.sideLength - 1][settings.sideLength - 1]
 
-        self.drawTileOntoSurface(self.startTile)
-        self.drawTileOntoSurface(self.finishTile)
+        self.startTile.drawSelf(self.main.screen)
+        self.finishTile.drawSelf(self.main.screen)
