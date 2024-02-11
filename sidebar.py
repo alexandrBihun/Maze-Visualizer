@@ -20,15 +20,15 @@ class Sidebar():
 
         # Initialize Button objects
         self.buttons = []
-        button_surface = pygame.image.load("button1.png")
+        button_surface = pygame.image.load("images/button1.png")
         button_surface = pygame.transform.scale(button_surface, (60, 60))
         self.switch_alg_button = Button(button_surface, settings.widthGrid + 10, 150)
         
-        button_surface = pygame.image.load("run_button.png")
+        button_surface = pygame.image.load("images/run_button.png")
         button_surface = pygame.transform.scale(button_surface, (3 * 70, 3 * 30))
         self.run_button = Button(button_surface, settings.widthGrid + 45, settings.heightGrid - 200)
 
-        button_surface = pygame.image.load("toggle_grid_button.png")
+        button_surface = pygame.image.load("images/toggle_grid_button.png")
         button_surface = pygame.transform.scale(button_surface, (3 * 70, 3 * 30))
         self.grid_lines_button = Button(button_surface, settings.widthGrid + 45, settings.heightGrid - 230 - self.run_button.rect.height)
         self.buttons.extend((self.switch_alg_button, self.run_button,self.grid_lines_button))
@@ -107,10 +107,6 @@ class Text():
         self.img = self.font.render(self.text, True, self.text_col)
         self.text_rect = self.img.get_rect()
         self.text_rect.topleft = (self.x, self.y) 
-
-    # Get the rect object of the text
-    def get_text_rect(self):
-        return self.text_rect
 
 # Define the Button class for handling clickable buttons
 class Button():

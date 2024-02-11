@@ -32,8 +32,8 @@ class Tools:
         return (binSearch(Tools.gridLines, mousePos[0])[0], binSearch(Tools.gridLines, mousePos[1])[0])
 
     @staticmethod
-    def drawWall(mousePos, grid, drawedCells):
-        """Draws wall tile. For MOUSEBUTTONDONW event handle."""
+    def setWall(mousePos, grid, drawedCells):
+        """Sets wall tile. For MOUSEBUTTONDONW event handle. Returns changed tile or False for failure"""
         if mousePos[0] >= 0 and mousePos[1] >= 0 and mousePos[0] <= Tools.gridLines[-1] and mousePos[1] <= Tools.gridLines[-1]:
             x, y = Tools._getCellPos(mousePos)
 
@@ -56,8 +56,8 @@ class Tools:
             return
     
     @staticmethod
-    def drawWallCurve(mousePos, grid, drawedCells, rel):
-        """Handles MOUSEMOTION wall draw event. Draws nodes with respect to tiles the mouse hovered over between frames."""
+    def setWallCurve(mousePos, grid, drawedCells, rel):
+        """Handles MOUSEMOTION wall draw event. Draws nodes with respect to tiles the mouse hovered over between frames. Returns changed tiles"""
         drawedCells2 = list()
         prev_x = mousePos[0]-rel[0]
         prev_y = mousePos[1]-rel[1]  
@@ -102,7 +102,7 @@ class Tools:
             tile.colour = settings.empty_colour
     
     @staticmethod
-    def drawEndPoints(mousePos, grid, currEndPointPos, start=False, finish=False):
+    def setEndPoints(mousePos, grid, currEndPointPos, start=False, finish=False):
         """Draws the start or finish tile."""
         if mousePos[0] >= 0 and mousePos[1] >= 0 and mousePos[0] <= Tools.gridLines[-1] and mousePos[1] <= Tools.gridLines[-1]:
             x, y = Tools._getCellPos(mousePos)

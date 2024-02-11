@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+# Author: Alexandr Bihun
+# Main entry point of the visualizator app
+
 # Import necessary modules
 import pygame
 import sys
@@ -17,10 +21,9 @@ class AppMain:
         # Create a clock object for controlling the frame rate
         self.clock = pygame.time.Clock()
         
-        # Create a Vizualizator object to handle visualization
         self.vizualizator = Vizualizator(self)
 
-    # Reset the visualization
+    # Reset the app
     def reset(self):
         self.vizualizator = Vizualizator(self)
 
@@ -32,7 +35,6 @@ class AppMain:
                 pygame.quit()
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
-                # Reset the visualization if the 'r' key is pressed
                 if event.key == pygame.K_r:
                     self.reset()
             # Pass events to the Vizualizator for handling

@@ -174,7 +174,7 @@ class Vizualizator:
             # Handle different tools (selectStart, selectFinish, wallBrush)
             if self.tool == "selectStart":
                 if pygame.mouse.get_pressed()[0]:
-                    x, y, self.toRedraw = Tools.drawEndPoints(
+                    x, y, self.toRedraw = Tools.setEndPoints(
                         pygame.mouse.get_pos(),
                         self.grid,
                         self.startTile.get_pos(),
@@ -187,7 +187,7 @@ class Vizualizator:
 
             elif self.tool == "selectFinish":
                 if pygame.mouse.get_pressed()[0]:
-                    x, y, self.toRedraw = Tools.drawEndPoints(
+                    x, y, self.toRedraw = Tools.setEndPoints(
                         pygame.mouse.get_pos(),
                         self.grid,
                         self.finishTile.get_pos(),
@@ -199,7 +199,7 @@ class Vizualizator:
                         self.finishTile.drawSelf(self.main.screen)
 
             elif self.tool == "wallBrush":
-                result = Tools.drawWall(
+                result = Tools.setWall(
                     pygame.mouse.get_pos(), self.grid, self.drawedCells
                 )
                 if result != None:
@@ -210,7 +210,7 @@ class Vizualizator:
             #print(event)
             # Handle wallBrush tool during mouse motion
             if self.tool == "wallBrush" and pygame.mouse.get_pressed()[0]:
-                result = Tools.drawWallCurve(
+                result = Tools.setWallCurve(
                     event.pos, self.grid, self.drawedCells, event.rel
                 )
                 self.toRedraw = True
@@ -274,29 +274,6 @@ class Vizualizator:
             if key.colour != settings.in_frontier_colour:
                 i += 1
         self.sidebar.print_num_visited_tiles(i)
-
-    def get_neighbours(self, node):
-        """Node is tile object, returns node pointers"""
-        neighbours = []
-
-        if node.y < settings.sideLength - 1:
-            if self.grid[node.x][node.y + 1].isWall == False:
-                neighbours.append(self.grid[node.x][node.y + 1])
-        if node.y > 0:
-            if self.grid[node.x][node.y - 1].isWall == False:
-                neighbours.append(self.grid[node.x][node.y - 1])
-        if node.x < settings.sideLength - 1:
-            if self.grid[node.x + 1][node.y].isWall == False:
-                neighbours.append(self.grid[node.x + 1][node.y])
-        if node.x > 0:
-            if self.grid[node.x - 1][node.y].isWall == False:
-                neighbours.append(self.grid[node.x - 1][node.y])
-
-        if (node.x + node.y) % 2 != 0:  
-            # Makes paths "prettier"; source: https://www.redblobgames.com/pathfinding/a-star/implementation.html#troubleshooting-ugly-path
-            neighbours.reverse()
-
-        return neighbours
 
     def changeVisualizationSpeed(self,event):
         """Dynamically changes visualization speed on keyboard input"""
@@ -369,7 +346,7 @@ class Vizualizator:
                 current.drawSelf(self.main.screen)
 
             #Add neighbors to the stack
-            for neighbor in self.get_neighbours(current):
+            for neighbor in current.get_neighbours(self.grid):
                 if neighbor not in visited:# and neighbor not in stack:
                     if neighbor != self.startTile and neighbor != self.finishTile:
                         neighbor.colour = settings.in_frontier_colour
@@ -404,7 +381,7 @@ class Vizualizator:
                 current.drawSelf(self.main.screen)
 
             #Enqueue neighbors
-            for neighbor in self.get_neighbours(current):
+            for neighbor in current.get_neighbours(self.grid):
                 if neighbor not in visited:
                     if neighbor != self.startTile and neighbor != self.finishTile:
                         neighbor.colour = settings.in_frontier_colour
@@ -446,7 +423,7 @@ class Vizualizator:
                 current.drawSelf(self.main.screen)
 
             #Add neighbors to priority queue
-            for neighbor in self.get_neighbours(current):
+            for neighbor in current.get_neighbours(self.grid):
                 if neighbor not in visited:
                     if neighbor != self.startTile and neighbor != self.finishTile:
                         neighbor.colour = settings.in_frontier_colour
@@ -488,7 +465,7 @@ class Vizualizator:
         while not priority_queue.empty():
             self.Alg_check_events()
             current = priority_queue.get().item
-            if current not in closed: #A-star sometimes visits a tile more than once, this makes sure revisited tile is not redrawn
+            if current not in closed: #Priority queue can conatin one vertex multiple times, with different priorities. The first time we expand a vertex we have found a shortest path to it, otherwise if there were a shorter path we would have expanded it earlier. But even after expanding the vertex the priority queue can still contain the expanded vertex with a worse priority because when we find a cheaper path to a vertex, we leave the old vertex with old priority in p. queue. This line resolves these unimportant entries. 
                 
                 if current == self.finishTile:
                     return parentDict, True
@@ -498,7 +475,7 @@ class Vizualizator:
                     current.drawSelf(self.main.screen)
 
                 #Add neighbors to priority queue
-                for neighbor in self.get_neighbours(current):
+                for neighbor in current.get_neighbours(self.grid):
                     g_cost = g_cost_dict[current] + 1 # Setting g_cost to be always 0 turns A* into Greedy best first search
                     h_cost = self.manhattan_dist(neighbor, self.finishTile) # Setting h_cost to be always 0 turns A* into Uniform Cost Search
                     f_cost = g_cost + h_cost
