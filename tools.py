@@ -33,7 +33,7 @@ class Tools:
 
     @staticmethod
     def setWall(mousePos, grid, drawedCells):
-        """Sets wall tile. For MOUSEBUTTONDONW event handle. Returns changed tile or False for failure"""
+        """Sets wall tile. For MOUSEBUTTONDONW event handle. Returns changed tile or None for failure"""
         if mousePos[0] >= 0 and mousePos[1] >= 0 and mousePos[0] <= Tools.gridLines[-1] and mousePos[1] <= Tools.gridLines[-1]:
             x, y = Tools._getCellPos(mousePos)
 
@@ -42,11 +42,6 @@ class Tools:
                     # Toggle wall status of selected tile
                     Tools.switchWall(grid[x][y])
                     drawedCells.append(grid[x][y])
-                    return grid[x][y]
-                elif drawedCells[0].isWall != grid[x][y].isWall:
-                    # Drawing or erasing had already begun -> make sure only one operation is performed at a time - either erasing or drawing
-                    #if grid[x][y] not in drawedCells:
-                    Tools.switchWall(grid[x][y])
                     return grid[x][y]
             else:
                 # Cannot draw/erase wall on start or finish tile
@@ -57,7 +52,7 @@ class Tools:
     
     @staticmethod
     def setWallCurve(mousePos, grid, drawedCells, rel):
-        """Handles MOUSEMOTION wall draw event. Draws nodes with respect to tiles the mouse hovered over between frames. Returns changed tiles"""
+        """Handles MOUSEMOTION wall draw event. Sets nodes with respect to tiles the mouse hovered over between frames. Returns changed tiles"""
         drawedCells2 = list()
         prev_x = mousePos[0]-rel[0]
         prev_y = mousePos[1]-rel[1]  
@@ -103,7 +98,7 @@ class Tools:
     
     @staticmethod
     def setEndPoints(mousePos, grid, currEndPointPos, start=False, finish=False):
-        """Draws the start or finish tile."""
+        """Sets new start or finish tile."""
         if mousePos[0] >= 0 and mousePos[1] >= 0 and mousePos[0] <= Tools.gridLines[-1] and mousePos[1] <= Tools.gridLines[-1]:
             x, y = Tools._getCellPos(mousePos)
             if x < settings.sideLength and y < settings.sideLength:

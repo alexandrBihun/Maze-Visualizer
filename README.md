@@ -18,6 +18,7 @@ Ovládá se klávesnicí:
 - 'f' vybere nástroj pro vybírání cíle
 - 'd' vybere nástroj pro kreslení a gumování stěn
 - 'c' smaže políčka vybarvená dokončenou vizualizací
+- 'i' zapne/vypne barevný mód vizualizace
 - 'r' restartuje celou aplikaci
 - '↑' zpomalí vizualizaci
 - '↓' zrychlí vizualizaci 

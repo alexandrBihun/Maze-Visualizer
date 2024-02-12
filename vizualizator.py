@@ -12,6 +12,7 @@ from typing import Any
 import sys
 from timeit import default_timer as timer
 
+import colorsys
 
 def timer_func(func):
     """Decorator for measuring running time of a function, source: https://www.python-engineer.com/posts/measure-elapsed-time/"""
@@ -52,6 +53,7 @@ class Vizualizator:
         self.selectedAlgo = "DFS"  # Initial algorithm selected
         self.visualDelay = 5  # Visualization delay (in milliseconds)
         self.numberOfTilesPerFrame = 1  # Number of tiles to visualize per frame
+        self.coloredSearch = False
 
     def generateMaze(self):
         """Generates a maze using Prim's randomized algorithm. Source: https://www.youtube.com/watch?v=cQVH4gcb3O4"""
@@ -246,6 +248,8 @@ class Vizualizator:
             if event.key == pygame.K_g:
                 self.generateMaze()
                 pygame.display.flip()
+            if event.key == pygame.K_i:
+                self.coloredSearch = not self.coloredSearch
             self.changeVisualizationSpeed(event)
 
     def visualizePath(self, path: dict, found):
@@ -257,7 +261,9 @@ class Vizualizator:
                 #Count path length and recursively recreate path
                 if not curr.isStart and not curr.isFinish:
                     self.Alg_check_events()
-                    curr.colour = settings.path_colour
+                    if self.coloredSearch:
+                        curr.colour = (127,98,45) # a colour that clearly stands out when the colourful visualization is used
+                    else: curr.colour = settings.path_colour
                     curr.drawSelf(self.main.screen)
                     if i % self.numberOfTilesPerFrame == 0:
                         pygame.display.flip()
@@ -323,6 +329,59 @@ class Vizualizator:
             pygame.display.flip()
             pygame.time.delay(self.visualDelay)
         return i + 1
+    
+    def color_shift(self, rgb):
+        """Returns a slightly shifted color for creating the colour gradient effect"""
+        (h, s, v) = colorsys.rgb_to_hsv(*(i / 255.0 for i in rgb))
+
+        h = (h + 0.005) % 1
+        return tuple(int(i * 255) for i in colorsys.hsv_to_rgb(h,s,v))
+    
+    @timer_func
+    def BFS(self):
+        """Breadth First Search"""
+        visited = set()
+        queue = deque()
+        queue.appendleft(self.startTile)
+        parentDict = dict()
+        parentDict[self.startTile] = None
+        if self.coloredSearch:
+            current_colour = (255,0,0) 
+        visited.add(self.startTile)
+        i = 0
+        while queue:
+            self.Alg_check_events()
+            current = queue.pop()
+            
+            if current == self.finishTile:
+                return parentDict, True
+
+            if self.coloredSearch:
+                if current == self.startTile:
+                    current.colour =  current_colour
+                else:
+                    tmp_col = parentDict[current].colour
+                    tmp_col = self.color_shift(tmp_col)
+                    current.colour = tmp_col
+                    current.drawSelf(self.main.screen)
+            elif current != self.startTile:
+                current.colour = settings.visited_colour
+                current.drawSelf(self.main.screen)
+
+            #Enqueue neighbors
+            for neighbor in current.get_neighbours(self.grid):
+                if neighbor not in visited:
+                    if neighbor != self.startTile and neighbor != self.finishTile:
+                        neighbor.colour = settings.in_frontier_colour
+                        neighbor.drawSelf(self.main.screen)
+                        
+                    queue.appendleft(neighbor)
+                    parentDict[neighbor] = current
+                    visited.add(neighbor)
+                    
+            #Visualize based on visualization speed
+            i = self.algo_visualize(i)
+        return parentDict, False
 
     @timer_func
     def DFS(self):
@@ -331,6 +390,8 @@ class Vizualizator:
         visited = set()
         parentDict = dict()
         parentDict[self.startTile] = None
+        if self.coloredSearch:
+            current_colour = (255,0,0) 
         i = 0
         visited.add(self.startTile)
         while stack:
@@ -341,7 +402,15 @@ class Vizualizator:
             if current == self.finishTile:
                 return parentDict, True
 
-            if current != self.startTile:
+            if self.coloredSearch:
+                if current == self.startTile:
+                    current.colour =  current_colour 
+                else:
+                    tmp_col = parentDict[current].colour
+                    tmp_col = self.color_shift(tmp_col)
+                    current.colour = tmp_col
+                    current.drawSelf(self.main.screen)
+            elif current != self.startTile:
                 current.colour = settings.visited_colour
                 current.drawSelf(self.main.screen)
 
@@ -360,42 +429,6 @@ class Vizualizator:
         return parentDict, False
 
     @timer_func
-    def BFS(self):
-        """Breadth First Search"""
-        visited = set()
-        queue = deque()
-        queue.appendleft(self.startTile)
-        parentDict = dict()
-        parentDict[self.startTile] = None
-        visited.add(self.startTile)
-        i = 0
-        while queue:
-            self.Alg_check_events()
-            current = queue.pop()
-
-            if current == self.finishTile:
-                return parentDict, True
-
-            if current != self.startTile:
-                current.colour = settings.visited_colour
-                current.drawSelf(self.main.screen)
-
-            #Enqueue neighbors
-            for neighbor in current.get_neighbours(self.grid):
-                if neighbor not in visited:
-                    if neighbor != self.startTile and neighbor != self.finishTile:
-                        neighbor.colour = settings.in_frontier_colour
-                        neighbor.drawSelf(self.main.screen)
-
-                    queue.appendleft(neighbor)
-                    parentDict[neighbor] = current
-                    visited.add(neighbor)
-
-            #Visualize based on visualization speed
-            i = self.algo_visualize(i)
-        return parentDict, False
-
-    @timer_func
     def greedy_BeFS(self):
         @dataclass(order=True)
         class PrioritizedItem:
@@ -409,6 +442,8 @@ class Vizualizator:
 
         parentDict = dict()
         parentDict[self.startTile] = None
+        if self.coloredSearch:
+            current_colour = (255,0,0) 
         visited.add(self.startTile)
         i = 0
         while not priority_queue.empty():
@@ -418,7 +453,15 @@ class Vizualizator:
             if current == self.finishTile:
                 return parentDict, True
 
-            if current != self.startTile:
+            if self.coloredSearch:
+                if current == self.startTile:
+                    current.colour =  current_colour #settings.visited_colour
+                else:
+                    tmp_col = parentDict[current].colour
+                    tmp_col = self.color_shift(tmp_col)
+                    current.colour = tmp_col
+                    current.drawSelf(self.main.screen)
+            elif current != self.startTile:
                 current.colour = settings.visited_colour
                 current.drawSelf(self.main.screen)
 
@@ -457,6 +500,8 @@ class Vizualizator:
 
         parentDict = dict()
         parentDict[self.startTile] = None
+        if self.coloredSearch:
+            current_colour = (255,0,0) 
         visited.add(self.startTile)
         closed = set()
         g_cost_dict = dict()
@@ -465,12 +510,20 @@ class Vizualizator:
         while not priority_queue.empty():
             self.Alg_check_events()
             current = priority_queue.get().item
-            if current not in closed: #Priority queue can conatin one vertex multiple times, with different priorities. The first time we expand a vertex we have found a shortest path to it, otherwise if there were a shorter path we would have expanded it earlier. But even after expanding the vertex the priority queue can still contain the expanded vertex with a worse priority because when we find a cheaper path to a vertex, we leave the old vertex with old priority in p. queue. This line resolves these unimportant entries. 
+            if current not in closed: #Priority queue can contain one vertex multiple times, with different priorities. The first time we expand a vertex we have found a shortest path to it, otherwise if there were a shorter path we would have expanded it earlier. But even after expanding the vertex the priority queue can still contain the expanded vertex with a worse priority because when we find a cheaper path to a vertex, we leave the old vertex with old priority in p. queue. This line resolves these unimportant entries. 
                 
                 if current == self.finishTile:
                     return parentDict, True
 
-                if current != self.startTile:
+                if self.coloredSearch:
+                    if current == self.startTile:
+                        current.colour =  current_colour
+                    else:
+                        tmp_col = parentDict[current].colour
+                        tmp_col = self.color_shift(tmp_col)
+                        current.colour = tmp_col
+                        current.drawSelf(self.main.screen)
+                elif current != self.startTile:
                     current.colour = settings.visited_colour
                     current.drawSelf(self.main.screen)
 

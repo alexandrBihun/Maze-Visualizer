@@ -37,17 +37,17 @@ class Sidebar():
         self.redraw_sidebar()
 
     # Display the length of the path found (or a message if no path is found)
-    def print_path_len(self, i):
-        if i == None:
+    def print_path_len(self, path_len):
+        if path_len == None:
             self.texts[2] = Text("No path found", "black", settings.widthGrid + 10, 230, self.font)
             self.redraw_sidebar()
         else:
-            self.texts[2] = Text(f"Path found! Length: {i}", "black", settings.widthGrid + 10, 230, self.font)
+            self.texts[2] = Text(f"Path found! Length: {path_len}", "black", settings.widthGrid + 10, 230, self.font)
             self.redraw_sidebar()
 
     # Display the number of visited tiles
-    def print_num_visited_tiles(self, i):
-        self.texts[3] = Text(f"N visited tiles: {i}", "black", settings.widthGrid + 10, 280, self.font)
+    def print_num_visited_tiles(self, num_visited):
+        self.texts[3] = Text(f"N visited tiles: {num_visited}", "black", settings.widthGrid + 10, 280, self.font)
         self.redraw_sidebar()
 
     # Set the selected algorithm and update the display
