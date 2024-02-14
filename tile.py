@@ -3,9 +3,9 @@ import pygame
 import settings
 
 # Determine the distribution of grid lines in the maze
-gridLinesDistribution = [round(0 + i * (settings.widthGrid - 0) / (settings.sideLength)) for i in range(settings.sideLength + 1)]
+gridLinesDistribution = [round(i * (settings.widthGrid ) / (settings.sideLength)) for i in range(settings.sideLength + 1)]
 
-# Define the Tile class for representing individual tiles in the maze
+# Define the Tile class for representing individual tiles in the grid
 class Tile():
     def __init__(self, x, y, colour) -> None:
         # Initialize tile attributes
@@ -13,7 +13,7 @@ class Tile():
         self.y = y
         self.isWall = False
         self.isStart = False
-        self.isFinish = False
+        self.isGoal = False
         self.colour = colour
 
     # Method to draw the tile onto the screen

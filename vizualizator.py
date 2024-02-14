@@ -25,6 +25,7 @@ def timer_func(func):
         return result
 
     return wrapper
+
 # Main class for visualization
 class Vizualizator:
     @timer_func
@@ -36,7 +37,7 @@ class Vizualizator:
         self.font = pygame.font.SysFont("Verdana", 18, True)
 
         self.gridLinesDistribution = [
-            round(0 + i * (settings.widthGrid - 0) / (settings.sideLength))
+            round(i * (settings.widthGrid ) / (settings.sideLength))
             for i in range(settings.sideLength + 1)
         ]
 
@@ -49,11 +50,12 @@ class Vizualizator:
         self.sidebar = Sidebar(self, self.main.screen, "DFS", self.font)  # Sidebar for UI
         self.toRedraw = True  # Flag to check whether the screen needs redrawing
         self.tool = "wallBrush"  # Initial tool selected
-        self.drawedCells = []  # List to store cells drawn during wallBrush operation
+        self.drawnTiles = []  # List to store tiles drawn during wallBrush operation
         self.selectedAlgo = "DFS"  # Initial algorithm selected
-        self.visualDelay = 5  # Visualization delay (in milliseconds)
-        self.numberOfTilesPerFrame = 1  # Number of tiles to visualize per frame
-        self.coloredSearch = False
+        self.visualDelay = 5 # Visualization delay (in milliseconds)
+        self.numberOfTilesPerFrame = 1 # Number of tiles to visualize per frame
+        self.coloredSearch = False # Flag for colourful search
+        self.colored_search_fisrt_colour = (255,0,0) 
 
     def generateMaze(self):
         """Generates a maze using Prim's randomized algorithm. Source: https://www.youtube.com/watch?v=cQVH4gcb3O4"""
@@ -85,10 +87,10 @@ class Vizualizator:
             for tile in column:
                 tile.isWall = True
                 tile.isStart = False
-                tile.isFinish = False
+                tile.isGoal = False
                 tile.colour = settings.wall_colour
 
-        # Set a random starting point and mark it as an empty cell
+        # Set a random starting point and mark it as an empty tile
         x, y = random.randint(0, settings.sideLength - 1), random.randint(
             0, settings.sideLength - 1
         )
@@ -125,7 +127,7 @@ class Vizualizator:
                 frontierDict[f] = randomTile
             frontiers.extend(newFrontiers)
 
-        # Set start and finish points in the generated maze
+        # Set start and goal points in the generated maze
         startFound = False
         lastTile = None
         for column in self.grid:
@@ -139,13 +141,13 @@ class Vizualizator:
                     lastTile = tile
                 tile.drawSelf(self.main.screen)
 
-        self.finishTile = lastTile
-        lastTile.colour = settings.finish_colour
-        lastTile.isFinish = True
+        self.goalTile = lastTile
+        lastTile.colour = settings.goal_colour
+        lastTile.isGoal = True
         lastTile.drawSelf(self.main.screen)
 
     def redrawVisited(self, redrawAll = False):
-        """Redraw all tiles visited during visualisation. If redrawAll is True, redraws all"""
+        """Redraw all tiles visited during visualisation. If redrawAll is True, redraws all tiles"""
         if redrawAll:
             for column in self.grid:
                 for tile in column:
@@ -154,7 +156,7 @@ class Vizualizator:
         else:
             for column in self.grid:
                 for tile in column:
-                    if not tile.isStart and not tile.isFinish and not tile.isWall:
+                    if not tile.isStart and not tile.isGoal and not tile.isWall:
                         tile.colour = settings.empty_colour
                         tile.drawSelf(self.main.screen)
             pygame.display.flip()
@@ -170,10 +172,10 @@ class Vizualizator:
         self.sidebar.handle_events(event)
 
         if event.type == pygame.MOUSEBUTTONUP:
-            self.drawedCells = []
+            self.drawnTiles = []
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            # Handle different tools (selectStart, selectFinish, wallBrush)
+            # Handle different tools (selectStart, selectGoal, wallBrush)
             if self.tool == "selectStart":
                 if pygame.mouse.get_pressed()[0]:
                     x, y, self.toRedraw = Tools.setEndPoints(
@@ -187,46 +189,45 @@ class Vizualizator:
                         self.startTile = self.grid[x][y]
                         self.startTile.drawSelf(self.main.screen)
 
-            elif self.tool == "selectFinish":
+            elif self.tool == "selectGoal":
                 if pygame.mouse.get_pressed()[0]:
                     x, y, self.toRedraw = Tools.setEndPoints(
                         pygame.mouse.get_pos(),
                         self.grid,
-                        self.finishTile.get_pos(),
-                        finish=True
+                        self.goalTile.get_pos(),
+                        goal=True
                     )
                     if self.toRedraw:
-                        self.finishTile.drawSelf(self.main.screen)
-                        self.finishTile = self.grid[x][y]
-                        self.finishTile.drawSelf(self.main.screen)
+                        self.goalTile.drawSelf(self.main.screen)
+                        self.goalTile = self.grid[x][y]
+                        self.goalTile.drawSelf(self.main.screen)
 
             elif self.tool == "wallBrush":
                 result = Tools.setWall(
-                    pygame.mouse.get_pos(), self.grid, self.drawedCells
+                    pygame.mouse.get_pos(), self.grid, self.drawnTiles
                 )
                 if result != None:
                     result.drawSelf(self.main.screen)
                 self.toRedraw = True
 
         elif event.type == pygame.MOUSEMOTION:
-            #print(event)
             # Handle wallBrush tool during mouse motion
             if self.tool == "wallBrush" and pygame.mouse.get_pressed()[0]:
                 result = Tools.setWallCurve(
-                    event.pos, self.grid, self.drawedCells, event.rel
+                    event.pos, self.grid, self.drawnTiles, event.rel
                 )
                 self.toRedraw = True
                 for c in result:
                     c.drawSelf(self.main.screen)
             else:
-                self.drawedCells = []
+                self.drawnTiles = []
 
         if event.type == pygame.KEYDOWN:
             # Handle key presses for different actions
             if event.key == pygame.K_s:
                 self.tool = "selectStart"
             if event.key == pygame.K_f:
-                self.tool = "selectFinish"
+                self.tool = "selectGoal"
             if event.key == pygame.K_d:
                 self.tool = "wallBrush"
             if event.key == pygame.K_1:
@@ -255,11 +256,11 @@ class Vizualizator:
     def visualizePath(self, path: dict, found):
         """Visualizes path, path is a parentDict"""
         if found:
-            curr = self.finishTile
+            curr = self.goalTile
             i = 0
             while curr != None:
                 #Count path length and recursively recreate path
-                if not curr.isStart and not curr.isFinish:
+                if not curr.isStart and not curr.isGoal:
                     self.Alg_check_events()
                     if self.coloredSearch:
                         curr.colour = (127,98,45) # a colour that clearly stands out when the colourful visualization is used
@@ -285,7 +286,7 @@ class Vizualizator:
         """Dynamically changes visualization speed on keyboard input"""
         if event.key == pygame.K_UP:
             if self.numberOfTilesPerFrame == 1:
-                self.visualDelay += 5
+                self.visualDelay += 3
             else:
                 #The slower the visualitaion is, the lower the speed decrease
                 self.numberOfTilesPerFrame -= int(max(1, self.numberOfTilesPerFrame / 10))
@@ -322,6 +323,7 @@ class Vizualizator:
         return abs(node.x - goal.x) + abs(node.y - goal.y)
     
     def algo_visualize(self,i):
+        """Helper function that visualizes any algorithm according to visualization speed"""
         if self.numberOfTilesPerFrame > 1:
             if i % self.numberOfTilesPerFrame == 0:
                 pygame.display.flip()
@@ -337,6 +339,23 @@ class Vizualizator:
         h = (h + 0.005) % 1
         return tuple(int(i * 255) for i in colorsys.hsv_to_rgb(h,s,v))
     
+    def setCurrsColour(self, current, parentDict):
+        """Sets new color to current"""
+        if self.coloredSearch:
+            if current == self.startTile:
+                pass
+            elif parentDict[current] == self.startTile:
+                current.colour =  self.colored_search_fisrt_colour
+                current.drawSelf(self.main.screen)
+            else:
+                tmp_col = parentDict[current].colour
+                tmp_col = self.color_shift(tmp_col)
+                current.colour = tmp_col
+                current.drawSelf(self.main.screen)
+        elif current != self.startTile:
+            current.colour = settings.visited_colour
+            current.drawSelf(self.main.screen)
+        
     @timer_func
     def BFS(self):
         """Breadth First Search"""
@@ -345,33 +364,21 @@ class Vizualizator:
         queue.appendleft(self.startTile)
         parentDict = dict()
         parentDict[self.startTile] = None
-        if self.coloredSearch:
-            current_colour = (255,0,0) 
         visited.add(self.startTile)
-        i = 0
+        i = 0 # Iteration counter
         while queue:
             self.Alg_check_events()
             current = queue.pop()
             
-            if current == self.finishTile:
+            if current == self.goalTile:
                 return parentDict, True
 
-            if self.coloredSearch:
-                if current == self.startTile:
-                    current.colour =  current_colour
-                else:
-                    tmp_col = parentDict[current].colour
-                    tmp_col = self.color_shift(tmp_col)
-                    current.colour = tmp_col
-                    current.drawSelf(self.main.screen)
-            elif current != self.startTile:
-                current.colour = settings.visited_colour
-                current.drawSelf(self.main.screen)
+            self.setCurrsColour(current, parentDict)
 
-            #Enqueue neighbors
+            # Enqueue neighbors
             for neighbor in current.get_neighbours(self.grid):
                 if neighbor not in visited:
-                    if neighbor != self.startTile and neighbor != self.finishTile:
+                    if neighbor != self.startTile and neighbor != self.goalTile:
                         neighbor.colour = settings.in_frontier_colour
                         neighbor.drawSelf(self.main.screen)
                         
@@ -379,180 +386,152 @@ class Vizualizator:
                     parentDict[neighbor] = current
                     visited.add(neighbor)
                     
-            #Visualize based on visualization speed
+            # Update the screen with newly drawn tiles based on visualization speed
             i = self.algo_visualize(i)
+
+        # If queue got emptied but goal was not found there is no path 
         return parentDict, False
 
     @timer_func
     def DFS(self):
         """Depth First Search"""
-        stack = [self.startTile]
         visited = set()
+        stack = [self.startTile]
         parentDict = dict()
         parentDict[self.startTile] = None
-        if self.coloredSearch:
-            current_colour = (255,0,0) 
-        i = 0
         visited.add(self.startTile)
+        i = 0 # Iteration counter
         while stack:
             self.Alg_check_events()
-
             current = stack.pop()
 
-            if current == self.finishTile:
+            if current == self.goalTile:
                 return parentDict, True
 
-            if self.coloredSearch:
-                if current == self.startTile:
-                    current.colour =  current_colour 
-                else:
-                    tmp_col = parentDict[current].colour
-                    tmp_col = self.color_shift(tmp_col)
-                    current.colour = tmp_col
-                    current.drawSelf(self.main.screen)
-            elif current != self.startTile:
-                current.colour = settings.visited_colour
-                current.drawSelf(self.main.screen)
+            self.setCurrsColour(current, parentDict)
 
-            #Add neighbors to the stack
+            # Add neighbors to the stack
             for neighbor in current.get_neighbours(self.grid):
-                if neighbor not in visited:# and neighbor not in stack:
-                    if neighbor != self.startTile and neighbor != self.finishTile:
+                if neighbor not in visited:
+                    if neighbor != self.startTile and neighbor != self.goalTile:
                         neighbor.colour = settings.in_frontier_colour
                         neighbor.drawSelf(self.main.screen)
+
                     stack.append(neighbor)
                     parentDict[neighbor] = current
                     visited.add(neighbor)
-            #Visualize based on visualization speed
+
+            # Update the screen with newly drawn tiles based on visualization speed
             i = self.algo_visualize(i)
 
+        # If stack got emptied but goal was not found there is no path 
         return parentDict, False
 
     @timer_func
     def greedy_BeFS(self):
+        """Greedy Best First Search"""
+
+        # Define priority queue item as (heuristic, node) tuple
         @dataclass(order=True)
-        class PrioritizedItem:
+        class PrioritizedItem: 
             priority: int
             item: Any = field(compare=False)
 
         visited = set()
-        priority_queue = PriorityQueue()
-        priority_queue.put(
-            PrioritizedItem(priority=0, item=self.startTile)) #Priority queue item with (heuristic, node) tuple
+        priority_queue = PriorityQueue() 
+        priority_queue.put(PrioritizedItem(priority=0, item=self.startTile)) 
 
         parentDict = dict()
         parentDict[self.startTile] = None
-        if self.coloredSearch:
-            current_colour = (255,0,0) 
         visited.add(self.startTile)
-        i = 0
+        i = 0 # Iteration counter
         while not priority_queue.empty():
             self.Alg_check_events()
             current = priority_queue.get().item
 
-            if current == self.finishTile:
+            if current == self.goalTile:
                 return parentDict, True
 
-            if self.coloredSearch:
-                if current == self.startTile:
-                    current.colour =  current_colour #settings.visited_colour
-                else:
-                    tmp_col = parentDict[current].colour
-                    tmp_col = self.color_shift(tmp_col)
-                    current.colour = tmp_col
-                    current.drawSelf(self.main.screen)
-            elif current != self.startTile:
-                current.colour = settings.visited_colour
-                current.drawSelf(self.main.screen)
+            self.setCurrsColour(current, parentDict)
 
-            #Add neighbors to priority queue
+            # Add neighbors to priority queue
             for neighbor in current.get_neighbours(self.grid):
                 if neighbor not in visited:
-                    if neighbor != self.startTile and neighbor != self.finishTile:
+                    if neighbor != self.startTile and neighbor != self.goalTile:
                         neighbor.colour = settings.in_frontier_colour
                         neighbor.drawSelf(self.main.screen)
-                    priority = self.manhattan_dist(neighbor, self.finishTile)
-                    priority_queue.put(
-                        PrioritizedItem(priority=priority, item=neighbor)
-                    )
-                    visited.add(neighbor)
-                    parentDict[neighbor] = current
 
-            #Visualize based on visualization speed
+                    priority = self.manhattan_dist(neighbor, self.goalTile)
+                    priority_queue.put(PrioritizedItem(priority=priority, item=neighbor))
+                    parentDict[neighbor] = current
+                    visited.add(neighbor)
+
+            # Update the screen with newly drawn tiles based on visualization speed
             i = self.algo_visualize(i)
 
+        # If priority queue got emptied but goal was not found there is no path
         return parentDict, False
 
     @timer_func
     def aStar(self):
+        """A* algorithm"""
+
+        # Define priority queue item as (heuristic, h_score, node) tuple
         @dataclass(order=True)
         class PrioritizedItem:
             priority: int
-            h_score: int
+            h_score: int # Often there are many nodes with the same priority in Priority Q.;breaking ties on lower h results in A* expanding to get closer to the goal ASAP while maintaining optimality  
             item: Any = field(compare=False)
 
         visited = set()
         priority_queue = PriorityQueue()
-        f_score_start = self.manhattan_dist(self.startTile, self.finishTile)
-        priority_queue.put(
-            PrioritizedItem(priority=0, h_score=f_score_start, item=self.startTile)
-        )  # Priority queue with (heuristic, node) tuple
+        f_score_start = self.manhattan_dist(self.startTile, self.goalTile)
+        priority_queue.put(PrioritizedItem(priority=0, h_score=f_score_start, item=self.startTile))
 
         parentDict = dict()
         parentDict[self.startTile] = None
-        if self.coloredSearch:
-            current_colour = (255,0,0) 
         visited.add(self.startTile)
         closed = set()
         g_cost_dict = dict()
         g_cost_dict[self.startTile] = 0
-        i = 0
+        i = 0 # Iteration counter
         while not priority_queue.empty():
             self.Alg_check_events()
             current = priority_queue.get().item
-            if current not in closed: #Priority queue can contain one vertex multiple times, with different priorities. The first time we expand a vertex we have found a shortest path to it, otherwise if there were a shorter path we would have expanded it earlier. But even after expanding the vertex the priority queue can still contain the expanded vertex with a worse priority because when we find a cheaper path to a vertex, we leave the old vertex with old priority in p. queue. This line resolves these unimportant entries. 
-                
-                if current == self.finishTile:
-                    return parentDict, True
+            if current not in closed: 
 
-                if self.coloredSearch:
-                    if current == self.startTile:
-                        current.colour =  current_colour
-                    else:
-                        tmp_col = parentDict[current].colour
-                        tmp_col = self.color_shift(tmp_col)
-                        current.colour = tmp_col
-                        current.drawSelf(self.main.screen)
-                elif current != self.startTile:
-                    current.colour = settings.visited_colour
-                    current.drawSelf(self.main.screen)
+                if current == self.goalTile:
+                    return parentDict, True
+                
+                self.setCurrsColour(current, parentDict)
 
                 #Add neighbors to priority queue
                 for neighbor in current.get_neighbours(self.grid):
-                    g_cost = g_cost_dict[current] + 1 # Setting g_cost to be always 0 turns A* into Greedy best first search
-                    h_cost = self.manhattan_dist(neighbor, self.finishTile) # Setting h_cost to be always 0 turns A* into Uniform Cost Search
+                    g_cost = g_cost_dict[current] + 1 # Setting g_cost to be always 0 would turn A* into Greedy best first search
+                    h_cost = self.manhattan_dist(neighbor, self.goalTile) # Setting h_cost to be always 0 would turn A* into Uniform Cost Search
                     f_cost = g_cost + h_cost
 
                     if neighbor not in visited:
-                        if neighbor != self.startTile and neighbor != self.finishTile:
+                        if neighbor != self.startTile and neighbor != self.goalTile:
                             neighbor.colour = settings.in_frontier_colour
                             neighbor.drawSelf(self.main.screen)
+                            
                         priority_queue.put(PrioritizedItem(priority=f_cost, h_score=h_cost, item=neighbor))
                         g_cost_dict[neighbor] = g_cost
                         parentDict[neighbor] = current
                         visited.add(neighbor)
 
                     elif g_cost < g_cost_dict[neighbor]:
-                        # This path is better than old one (better g cost), update the priority queue
+                        # This path is better than the old one (better g cost), update the priority queue; leaves old item with worse priorty in PQ, that gets resolved by closed list
                         priority_queue.put(PrioritizedItem(priority=f_cost, h_score=h_cost, item=neighbor))
                         g_cost_dict[neighbor] = g_cost
                         parentDict[neighbor] = current
-                        visited.add(neighbor)
                 
-                
-                #Visualize based on visualization speed
+                #Update the screen with newly drawn tiles based on visualization speed
                 i = self.algo_visualize(i)
                 closed.add(current)
+
+        # If priority queue got emptied but goal was not found there is no path
         return parentDict, False
 
     def runVisualization(self):
@@ -575,7 +554,7 @@ class Vizualizator:
             pygame.draw.line(surf, settings.grid_lines, (i, 0), (i, settings.heightGrid))
 
     def run(self):
-        """Main loop, doesnt do that much"""
+        """Main loop, redraws when necessary"""
         if self.toRedraw:
             pygame.display.flip()
             self.toRedraw = False
@@ -593,10 +572,10 @@ class Vizualizator:
 
         self.grid[0][0].colour = settings.start_colour
         self.grid[0][0].isStart = True
-        self.grid[settings.sideLength - 1][settings.sideLength - 1].colour = settings.finish_colour
-        self.grid[settings.sideLength - 1][settings.sideLength - 1].isFinish = True
+        self.grid[settings.sideLength - 1][settings.sideLength - 1].colour = settings.goal_colour
+        self.grid[settings.sideLength - 1][settings.sideLength - 1].isGoal = True
         self.startTile = self.grid[0][0]
-        self.finishTile = self.grid[settings.sideLength - 1][settings.sideLength - 1]
+        self.goalTile = self.grid[settings.sideLength - 1][settings.sideLength - 1]
 
         self.startTile.drawSelf(self.main.screen)
-        self.finishTile.drawSelf(self.main.screen)
+        self.goalTile.drawSelf(self.main.screen)

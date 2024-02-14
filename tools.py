@@ -21,71 +21,71 @@ def binSearch(sorted_list, target):
     return high, low
 
 class Tools:
-    """The Tools class provides the logic behind the tools for drawing/erasing walls, start, and finish."""
+    """The Tools class provides the logic behind the tools for drawing/erasing walls, start, and goal."""
 
     # List containing positions of grid lines
-    gridLines = [round(0 + i * (settings.widthGrid - 0) / (settings.sideLength)) for i in range(settings.sideLength + 1)]
+    gridLines = [round(i * (settings.widthGrid) / (settings.sideLength)) for i in range(settings.sideLength + 1)]
 
     @staticmethod
     def _getCellPos(mousePos):
-        """Convert mouse position to grid cell coordinates."""
+        """Convert mouse position to grid tile coordinates"""
         return (binSearch(Tools.gridLines, mousePos[0])[0], binSearch(Tools.gridLines, mousePos[1])[0])
 
     @staticmethod
-    def setWall(mousePos, grid, drawedCells):
+    def setWall(mousePos, grid, drawnTiles):
         """Sets wall tile. For MOUSEBUTTONDONW event handle. Returns changed tile or None for failure"""
         if mousePos[0] >= 0 and mousePos[1] >= 0 and mousePos[0] <= Tools.gridLines[-1] and mousePos[1] <= Tools.gridLines[-1]:
             x, y = Tools._getCellPos(mousePos)
 
-            if not grid[x][y].isStart and not grid[x][y].isFinish:
-                if len(drawedCells) == 0:
+            if not grid[x][y].isStart and not grid[x][y].isGoal:
+                if len(drawnTiles) == 0:
                     # Toggle wall status of selected tile
                     Tools.switchWall(grid[x][y])
-                    drawedCells.append(grid[x][y])
+                    drawnTiles.append(grid[x][y])
                     return grid[x][y]
             else:
-                # Cannot draw/erase wall on start or finish tile
+                # Cannot draw/erase wall on start or goal tile
                 return
         else:
             # Mouse pos out of range
             return
     
     @staticmethod
-    def setWallCurve(mousePos, grid, drawedCells, rel):
+    def setWallCurve(mousePos, grid, drawnTiles, rel):
         """Handles MOUSEMOTION wall draw event. Sets nodes with respect to tiles the mouse hovered over between frames. Returns changed tiles"""
-        drawedCells2 = list()
+        drawnTiles2 = list()
         prev_x = mousePos[0]-rel[0]
         prev_y = mousePos[1]-rel[1]  
         vector_len = int((rel[0]**2 + rel[1]**2)**0.5)
-        # Finds tiles mouse hovered over between this and last frame using maths (smoothly add a fraction of relative change vector to first pos)
+        # Finds tiles mouse hovered over between this and last frame by smoothly adding a fraction of the relative change vector to first pos
         for i in range(vector_len):
             dx = i*rel[0]/vector_len
             dy = i*rel[1]/vector_len
             tmp_x = prev_x+dx
             tmp_y = prev_y+dy
             cell_x, cell_y = Tools._getCellPos((tmp_x,tmp_y))
-            if (cell_x,cell_y) not in drawedCells2:
-                drawedCells2.append((cell_x,cell_y))
+            if (cell_x,cell_y) not in drawnTiles2:
+                drawnTiles2.append((cell_x,cell_y))
         
-        drawedCells3 = list()
-        for c in drawedCells2:
+        drawnTiles3 = list()
+        for c in drawnTiles2:
             x = c[0]
             y = c[1]
-            # Selects tiles appropriate for redrawing
+            # Filters out tiles inappropriate for redrawing
             if x >= 0 and y >= 0 and x < settings.sideLength and y < settings.sideLength:
-                if grid[x][y].isStart or grid[x][y].isFinish:
+                if grid[x][y].isStart or grid[x][y].isGoal:
                     continue
-                if len(drawedCells) != 0:
-                    if grid[x][y].isWall != drawedCells[0].isWall:
+                if len(drawnTiles) != 0:
+                    if grid[x][y].isWall != drawnTiles[0].isWall:
                         Tools.switchWall(grid[x][y])
-                        drawedCells3.append(grid[x][y])
+                        drawnTiles3.append(grid[x][y])
                 else:
                     # Occurs when mouse held down in sidebar and moved to grid space
                     Tools.switchWall(grid[x][y])
-                    drawedCells.append(grid[x][y])
-                    drawedCells3.append(grid[x][y])
+                    drawnTiles.append(grid[x][y])
+                    drawnTiles3.append(grid[x][y])
 
-        return drawedCells3
+        return drawnTiles3
     
     @staticmethod
     def switchWall(tile):
@@ -97,12 +97,12 @@ class Tools:
             tile.colour = settings.empty_colour
     
     @staticmethod
-    def setEndPoints(mousePos, grid, currEndPointPos, start=False, finish=False):
-        """Sets new start or finish tile."""
+    def setEndPoints(mousePos, grid, currEndPointPos, start=False, goal=False):
+        """Sets new start or goal tile."""
         if mousePos[0] >= 0 and mousePos[1] >= 0 and mousePos[0] <= Tools.gridLines[-1] and mousePos[1] <= Tools.gridLines[-1]:
             x, y = Tools._getCellPos(mousePos)
             if x < settings.sideLength and y < settings.sideLength:
-                if currEndPointPos != (x, y) and ((start and not grid[x][y].isFinish) or (finish and not grid[x][y].isStart)):
+                if currEndPointPos != (x, y) and ((start and not grid[x][y].isGoal) or (goal and not grid[x][y].isStart)):
                     if start:
                         # Sets new start tile
                         grid[x][y].isWall = False
@@ -112,13 +112,13 @@ class Tools:
                         grid[currEndPointPos[0]][currEndPointPos[1]].isStart = False
                         return x, y, True
 
-                    elif finish:
-                        # Sets new finish tile
+                    elif goal:
+                        # Sets new goal tile
                         grid[x][y].isWall = False
-                        grid[x][y].colour = settings.finish_colour
-                        grid[x][y].isFinish = True
+                        grid[x][y].colour = settings.goal_colour
+                        grid[x][y].isGoal = True
                         grid[currEndPointPos[0]][currEndPointPos[1]].colour = settings.empty_colour
-                        grid[currEndPointPos[0]][currEndPointPos[1]].isFinish = False
+                        grid[currEndPointPos[0]][currEndPointPos[1]].isGoal = False
                         return x, y, True
                 
         return currEndPointPos[0], currEndPointPos[1], False
